@@ -1,5 +1,24 @@
-# DevSeq
-DevSeq Project
+# DevSeq Project
+
+## Reproducible Scripts for the Publication:
+
+Schuster C, Gabel A, Drost H-G, Grosse I, Meyerowitz E. __DevSeq: __
+
+
+### Reference Genome and Proteome Retrieval
+
+The CDS and proteome files of _Arabidopsis thaliana_ have been retrieved from ENSEMBL
+via the [biomartr](https://github.com/HajkD/biomartr) package.
+
+```r
+# install.packages("biomartr")
+
+# download CDS for Arabidopsis thaliana
+biomartr::getCDS(db = "ensembl", organism = "Arabidopsis thaliana", path = getwd())
+
+# download proteome for Arabidopsis thaliana
+biomartr::getProteome(db = "ensembl", organism = "Arabidopsis thaliana", path = getwd())
+```
 
 The [DevSeqR package](https://github.com/HajkD/DevSeqR) allows users to reproduce all analyses and to perform
 additional exploratory data analysis using the DevSeq dataset.
