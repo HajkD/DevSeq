@@ -2,7 +2,7 @@
 
 ## Reproducible Scripts for the Publication:
 
-Schuster C, Gabel A, Drost H-G, Grosse I, Meyerowitz E. __DevSeq: __
+Schuster C, Gabel A, Drost H-G, Grosse I, Meyerowitz E. DevSeq: 
 
 
 ### Reference Genome and Proteome Retrieval
@@ -14,11 +14,34 @@ via the [biomartr](https://github.com/HajkD/biomartr) package.
 # install.packages("biomartr")
 
 # download CDS for Arabidopsis thaliana
-biomartr::getCDS(db = "ensembl", organism = "Arabidopsis thaliana", path = getwd())
+biomartr::getCDS(db = "ensemblgenomes", organism = "Arabidopsis thaliana", path = getwd())
 
 # download proteome for Arabidopsis thaliana
-biomartr::getProteome(db = "ensembl", organism = "Arabidopsis thaliana", path = getwd())
+biomartr::getProteome(db = "ensemblgenomes", organism = "Arabidopsis thaliana", path = getwd())
+
+
+# download CDS for Tarenaya hassleriana
+biomartr::getCDS(db = "refseq", organism = "Tarenaya hassleriana", path = getwd())
+
+# download proteome for Tarenaya hassleriana
+biomartr::getProteome(db = "refseq", organism = "Tarenaya hassleriana", path = getwd())
 ```
+
+The CDS and Proteome files for `` have been downloaded from Phytozome V11 on 17 Nov 2016.
+
+### Perform Orthology Inference and Generate dN/dS tables
+
+```r
+# compute dN/dS table of A. thaliana vs. A. lyrata
+Athaliana_vs_Alyrata <- dNdS(
+                         query_file      = "data/CDS/Arabidopsis_thaliana.TAIR10.cds.all.fa.gz",
+                         subject_file    = "data/CDS/Alyrata_107_v1.0.cds.fa.gz",
+                         eval            = "1E-5", 
+                         ortho_detection = "RBH",
+                         comp_cores      = 1)
+
+```
+
 
 The [DevSeqR package](https://github.com/HajkD/DevSeqR) allows users to reproduce all analyses and to perform
 additional exploratory data analysis using the DevSeq dataset.
