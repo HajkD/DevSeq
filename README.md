@@ -8,7 +8,8 @@ Schuster C, Gabel A, Drost H-G, Grosse I, Meyerowitz E. DevSeq:
 ### Reference Genome and Proteome Retrieval
 
 The CDS and proteome files of _Arabidopsis thaliana_ have been retrieved from ENSEMBL
-via the [biomartr](https://github.com/HajkD/biomartr) package.
+via the [biomartr](https://github.com/HajkD/biomartr) package. First, users need to
+install the [biomartr](https://github.com/HajkD/biomartr#installation) package.
 
 ```r
 # install.packages("biomartr")
@@ -16,29 +17,32 @@ via the [biomartr](https://github.com/HajkD/biomartr) package.
 # download CDS for Arabidopsis thaliana
 biomartr::getCDS(db = "ensemblgenomes", organism = "Arabidopsis thaliana", path = getwd())
 
-# download proteome for Arabidopsis thaliana
-biomartr::getProteome(db = "ensemblgenomes", organism = "Arabidopsis thaliana", path = getwd())
-
-
 # download CDS for Tarenaya hassleriana
 biomartr::getCDS(db = "refseq", organism = "Tarenaya hassleriana", path = getwd())
-
-# download proteome for Tarenaya hassleriana
-biomartr::getProteome(db = "refseq", organism = "Tarenaya hassleriana", path = getwd())
 ```
 
-The CDS and Proteome files for `` have been downloaded from Phytozome V11 on 17 Nov 2016.
+The CDS and Proteome files for `` have been downloaded from [Phytozome V11](https://phytozome.jgi.doe.gov/pz/portal.html) on 17 Nov 2016.
 
 ### Perform Orthology Inference and Generate dN/dS tables
 
+### Installing the orthologr package
+
+For dNdS computations first users need to install the [orthologr](https://github.com/HajkD/orthologr#installation-guide) package. 
+
 ```r
-# compute dN/dS table of A. thaliana vs. A. lyrata
-Athaliana_vs_Alyrata <- dNdS(
-                         query_file      = "data/CDS/Arabidopsis_thaliana.TAIR10.cds.all.fa.gz",
-                         subject_file    = "data/CDS/Alyrata_107_v1.0.cds.fa.gz",
-                         eval            = "1E-5", 
-                         ortho_detection = "RBH",
-                         comp_cores      = 1)
+# compute dN/dS table of A. thaliana vs. all other species
+orthologr::map.generator(
+               query_file      = "data/CDS/Arabidopsis_thaliana.TAIR10.cds.all.fa.gz",
+               subject_file    = "data/CDS/subject_species",
+               eval            = "1E-5", 
+               ortho_detection = "RBH",
+               aa_aln_type      = "pairwise",
+               aa_aln_tool      = "NW", 
+               codon_aln_tool   = "pal2nal", 
+               dnds_est.method  = "Comeron",
+               output.folder    = "data/dNdS_maps",
+               comp_cores       = 12
+               )
 
 ```
 
