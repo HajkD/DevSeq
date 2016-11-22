@@ -33,7 +33,7 @@ For dNdS computations first users need to install the [orthologr](https://github
 # compute dN/dS table of A. thaliana vs. all other species
 orthologr::map.generator(
                query_file      = "data/CDS/Arabidopsis_thaliana.TAIR10.cds.all.fa.gz",
-               subject_file    = "data/CDS/subject_species",
+               subjects.folder = "data/CDS/subject_species",
                eval            = "1E-5", 
                ortho_detection = "RBH",
                aa_aln_type      = "pairwise",
