@@ -9,7 +9,7 @@ Schuster C, Gabel A, Drost H-G, Grosse I, Meyerowitz E. DevSeq:
 
 The CDS and proteome files of _Arabidopsis thaliana_ have been retrieved from ENSEMBL
 via the [biomartr](https://github.com/HajkD/biomartr) package. First, users need to
-install the [biomartr](https://github.com/HajkD/biomartr#installation) package.
+[install the biomartr](https://github.com/HajkD/biomartr#installation) package.
 
 ```r
 # install.packages("biomartr")
@@ -27,7 +27,7 @@ The CDS and Proteome files for `` have been downloaded from [Phytozome V11](http
 
 ### Installing the orthologr package
 
-For dNdS computations first users need to install the [orthologr](https://github.com/HajkD/orthologr#installation-guide) package. 
+For dNdS computations first users need to [install the orthologr](https://github.com/HajkD/orthologr#installation-guide) package. 
 
 ```r
 # compute dN/dS table of A. thaliana vs. all other species
