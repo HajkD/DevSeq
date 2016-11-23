@@ -15,10 +15,10 @@ install the [biomartr](https://github.com/HajkD/biomartr#installation) package.
 # install.packages("biomartr")
 
 # download CDS for Arabidopsis thaliana
-biomartr::getCDS(db = "ensemblgenomes", organism = "Arabidopsis thaliana", path = getwd())
+biomartr::getCDS(db = "ensemblgenomes", organism = "Arabidopsis thaliana", path = "data/CDS")
 
 # download CDS for Tarenaya hassleriana
-biomartr::getCDS(db = "refseq", organism = "Tarenaya hassleriana", path = getwd())
+biomartr::getCDS(db = "refseq", organism = "Tarenaya hassleriana", path = "data/CDS/subject_species")
 ```
 
 The CDS and Proteome files for `` have been downloaded from [Phytozome V11](https://phytozome.jgi.doe.gov/pz/portal.html) on 17 Nov 2016.
