@@ -185,7 +185,31 @@ Analogous all other individual dNdS maps can be selected by typing `map.list$Ath
 ### Detection of all `A. thaliana` genes that have intersecting orthologs with all other species
 
 ```r
+# first rename colnames of individual dNdS maps
+for (i in seq_along(map.list)) {
+   colnames(map.list[[i]])[2:5] <- paste0(names(map.list)[i], c("_subject_id","_dN", "_dS", "_dNdS"))
+}
 
+# combine all geneids into one file
+all.maps <- dplyr::bind_rows(lapply(map.list, function(x) x$query_id))
+
+# detect genes that have orthologs in all other species
+length(all.maps$query_id[table(all.maps$query_id) == length(map.list)])
+```
+
+```
+9280
+```
+
+Thus, `9280 A. thaliana` genes have orthologs in all other species.
+Now, we combine all dN, dS, and dNdS information for these `9280` genes.
+
+```r
+# store all intersecting orthologs in tibble
+all.orthologs <- tibble::as_tibble(all.maps$query_id[which(table(all.maps$query_id) == length(map.list)])
+colnames(all.orthologs) <- "query_id"
+
+lapply(map.list, function(x) dplyr::inner_join(all.orthologs, x, by = "query_id"))
 ```
 
 
