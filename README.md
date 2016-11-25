@@ -206,7 +206,7 @@ Now, we combine all dN, dS, and dNdS information for these `9280` genes.
 
 ```r
 # store all intersecting orthologs in tibble
-all.orthologs <- tibble::as_tibble(all.maps$query_id[which(table(all.maps$query_id) == length(map.list)])
+all.orthologs <- tibble::as_tibble(all.maps$query_id[which(table(all.maps$query_id) == length(map.list))])
 colnames(all.orthologs) <- "query_id"
 
 lapply(map.list, function(x) dplyr::inner_join(all.orthologs, x, by = "query_id"))
