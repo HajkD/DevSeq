@@ -191,10 +191,10 @@ for (i in seq_along(map.list)) {
 }
 
 # combine all geneids into one file
-all.maps <- dplyr::bind_rows(lapply(map.list, function(x) x$query_id))
+all.maps <- dplyr::bind_rows(lapply(map.list, function(x) dplyr::select(x, query_id)))
 
 # detect genes that have orthologs in all other species
-length(all.maps$query_id[table(all.maps$query_id) == length(map.list)])
+length(all.maps$query_id[which(table(all.maps$query_id) == length(map.list))])
 ```
 
 ```
