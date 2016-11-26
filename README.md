@@ -195,7 +195,7 @@ all.maps <- dplyr::bind_rows(lapply(map.list, function(x) tibble::as_tibble(uniq
 colnames(all.maps) <- "query_id"
 
 # detect genes that have orthologs in all other species
-length(all.maps$query_id[which(table(all.maps$query_id) == length(map.list))])
+length(names(table(all.maps$query_id))[which(table(all.maps$query_id) == length(map.list))])
 ```
 
 ```
@@ -205,13 +205,28 @@ length(all.maps$query_id[which(table(all.maps$query_id) == length(map.list))])
 Thus, `9280 A. thaliana` genes have orthologs in all other species.
 Now, we combine all dN, dS, and dNdS information for these `9280` genes.
 
+Look at home many orthologs are shared between 1,2,3,.. species:
+
+```r
+table(table(all.maps$query_id))
+```
+
+```
+   1    2    3    4    5 
+4185 3363 4635 5080 9280 
+```
+
+
 ```r
 # store all intersecting orthologs in tibble
-all.orthologs <- tibble::as_tibble(all.maps$query_id[which(table(all.maps$query_id) == length(map.list))])
+all.orthologs <- tibble::as_tibble(names(table(all.maps$query_id))[which(table(all.maps$query_id) == length(map.list))])
 colnames(all.orthologs) <- "query_id"
 
 # generate final orthologs table
-final.orthologs <- lapply(map.list, function(x) dplyr::inner_join(all.orthologs, x, by = "query_id"))
+orthologs <- lapply(map.list, function(x) dplyr::inner_join(all.orthologs, x, by = "query_id"))
+
+
+
 ```
 
 The [DevSeqR package](https://github.com/HajkD/DevSeqR) allows users to reproduce all analyses and to perform
