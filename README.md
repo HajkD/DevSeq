@@ -275,7 +275,7 @@ Store final table in `;` separated file:
 # create new folder "ortho_table"
 dir.create("data/ortho_table")
 # store final orthologs file in ortho_table folder
-readr::write_delim(final.orthologs, "data/ortho_table/DevSeq_all_species_intersect_orthologs.csv")
+readr::write_delim(final.orthologs, "data/ortho_table/DevSeq_all_species_intersect_orthologs.csv", delim = ";")
 ```
 
 ## Install `DevSeqR` package
