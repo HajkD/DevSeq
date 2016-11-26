@@ -278,10 +278,10 @@ dir.create("data/ortho_table")
 readr::write_delim(final.orthologs, "data/ortho_table/DevSeq_all_species_intersect_orthologs.csv")
 ```
 
+## Install `DevSeqR` package
+
 The [DevSeqR package](https://github.com/HajkD/DevSeqR) allows users to reproduce all analyses and to perform
 additional exploratory data analysis using the DevSeq dataset.
-
-## Install `DevSeqR` package
 
 ```r
 # install.packages("devtools")
