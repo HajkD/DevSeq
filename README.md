@@ -203,7 +203,6 @@ length(names(table(all.maps$query_id))[which(table(all.maps$query_id) == length(
 ```
 
 Thus, `9280 A. thaliana` genes have orthologs in all other species.
-Now, we combine all dN, dS, and dNdS information for these `9280` genes.
 
 Look at home many orthologs are shared between 1,2,3,.. species:
 
@@ -216,6 +215,7 @@ table(table(all.maps$query_id))
 4185 3363 4635 5080 9280 
 ```
 
+Now, we combine all dN, dS, and dNdS information for these `9280` genes.
 
 ```r
 # store all intersecting orthologs in tibble
