@@ -222,11 +222,60 @@ table(table(all.maps$query_id))
 all.orthologs <- tibble::as_tibble(names(table(all.maps$query_id))[which(table(all.maps$query_id) == length(map.list))])
 colnames(all.orthologs) <- "query_id"
 
-# generate final orthologs table
+# generate orthologs tables
 orthologs <- lapply(map.list, function(x) dplyr::inner_join(all.orthologs, x, by = "query_id"))
 
+# join orthologs tables to a final cross-species orthologs dNdS file
+final.orthologs <- orthologs$Ath_vs_Alyr
+for (i in (seq_along(map.list) - 1)) {
+    final.orthologs <- dplyr::inner_join(final.orthologs, orthologs[[i + 1]], by = "query_id")
+}
 
+# filter table
+final.orthologs <- dplyr::select(
+    final.orthologs,
+    -Ath_vs_Alyr_subject_id.x,
+    -Ath_vs_Alyr_dN.x,
+    -Ath_vs_Alyr_dS.x,
+    -Ath_vs_Alyr_dNdS.x
+)
+colnames(final.orthologs)[2:5] <-
+    c("Ath_vs_Alyr_subject_id",
+      "Ath_vs_Alyr_dN",
+      "Ath_vs_Alyr_dS",
+      "Ath_vs_Alyr_dNdS")
 
+# looking at the final table
+final.orthologs
+```
+
+```
+ A tibble: 9,280 × 21
+        query_id Ath_vs_Alyr_subject_id Ath_vs_Alyr_dN Ath_vs_Alyr_dS Ath_vs_Alyr_dNdS Ath_vs_Crub_subject_id Ath_vs_Crub_dN
+           <chr>                  <chr>          <dbl>          <dbl>            <dbl>                  <chr>          <dbl>
+1  AT1G01040.1.1                 333551       0.013470         0.1165          0.11560        Carubv10008073m        0.02317
+2  AT1G01050.2.1                 909874       0.000000         0.1750          0.00000        Carubv10010288m        0.01063
+3  AT1G01080.1.1                 909871       0.033980         0.1056          0.32170        Carubv10009913m        0.07032
+4  AT1G01090.1.1                 470171       0.009104         0.2181          0.04174        Carubv10009201m        0.01581
+5  AT1G01110.2.1                 333544       0.032480         0.1220          0.26620        Carubv10008796m        0.05539
+6  AT1G01120.1.1                 918858       0.003072         0.1326          0.02317        Carubv10012263m        0.01629
+7  AT1G01170.2.1                 311317       0.000000         0.3064          0.00000        Carubv10010775m        0.02147
+8  AT1G01180.1.1                 909860       0.038320         0.1540          0.24880        Carubv10009834m        0.06208
+9  AT1G01200.1.1                 470156       0.019050         0.1675          0.11370        Carubv10010167m        0.03387
+10 AT1G01225.1.1                 470154       0.013320         0.1122          0.11870        Carubv10028051m        0.02673
+ ... with 9,270 more rows, and 14 more variables: Ath_vs_Crub_dS <dbl>, Ath_vs_Crub_dNdS <dbl>, Ath_vs_Esals_subject_id <chr>,
+   Ath_vs_Esals_dN <dbl>, Ath_vs_Esals_dS <dbl>, Ath_vs_Esals_dNdS <dbl>, Ath_vs_Mtrunc_subject_id <chr>, Ath_vs_Mtrunc_dN <dbl>,
+   Ath_vs_Mtrunc_dS <dbl>, Ath_vs_Mtrunc_dNdS <dbl>, Ath_vs_Thassl_subject_id <chr>, Ath_vs_Thassl_dN <dbl>, Ath_vs_Thassl_dS <dbl>,
+   Ath_vs_Thassl_dNdS <dbl>
+```
+
+Store final table in `;` separated file:
+
+```r
+# create new folder "ortho_table"
+dir.create("data/ortho_table")
+# store final orthologs file in ortho_table folder
+readr::write_delim(final.orthologs, "data/ortho_table/DevSeq_all_species_intersect_orthologs.csv")
 ```
 
 The [DevSeqR package](https://github.com/HajkD/DevSeqR) allows users to reproduce all analyses and to perform
