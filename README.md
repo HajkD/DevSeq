@@ -191,7 +191,8 @@ for (i in seq_along(map.list)) {
 }
 
 # combine all geneids into one file
-all.maps <- dplyr::bind_rows(lapply(map.list, function(x) dplyr::select(x, query_id)))
+all.maps <- dplyr::bind_rows(lapply(map.list, function(x) tibble::as_tibble(unique(x$query_id))))
+colnames(all.maps) <- "query_id"
 
 # detect genes that have orthologs in all other species
 length(all.maps$query_id[which(table(all.maps$query_id) == length(map.list))])
@@ -209,10 +210,9 @@ Now, we combine all dN, dS, and dNdS information for these `9280` genes.
 all.orthologs <- tibble::as_tibble(all.maps$query_id[which(table(all.maps$query_id) == length(map.list))])
 colnames(all.orthologs) <- "query_id"
 
-lapply(map.list, function(x) dplyr::inner_join(all.orthologs, x, by = "query_id"))
+# generate final orthologs table
+final.orthologs <- lapply(map.list, function(x) dplyr::inner_join(all.orthologs, x, by = "query_id"))
 ```
-
-
 
 The [DevSeqR package](https://github.com/HajkD/DevSeqR) allows users to reproduce all analyses and to perform
 additional exploratory data analysis using the DevSeq dataset.
