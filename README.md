@@ -21,7 +21,7 @@ biomartr::getCDS(db = "ensemblgenomes", organism = "Arabidopsis thaliana", path 
 biomartr::getCDS(db = "refseq", organism = "Tarenaya hassleriana", path = "data/CDS/subject_species")
 ```
 
-The CDS and Proteome files for `` have been downloaded from [Phytozome V11](https://phytozome.jgi.doe.gov/pz/portal.html) on 17 Nov 2016.
+The CDS and Proteome files for `A. lyrata`, `B. distachyon`, `C. rubella`, `E. salsugineum`, `M. truncatula` have been downloaded from [Phytozome V11](https://phytozome.jgi.doe.gov/pz/portal.html) on 17 Nov 2016.
 
 ### Perform Orthology Inference and Generate dN/dS tables
 
