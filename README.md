@@ -29,18 +29,19 @@ The CDS and Proteome files for `A. lyrata`, `B. distachyon`, `C. rubella`, `E. s
 
 For dNdS computations first users need to [install the orthologr](https://github.com/HajkD/orthologr#installation-guide) package. 
 As a next step, please also [install BLAST+](https://github.com/HajkD/orthologr/blob/master/vignettes/Install.Rmd#install-blast) into the `/usr/local/bin` directory on your computer. 
+Please be aware that the following dN/dS computations might run several hours with 12 - 20 cores or even up to 1 - 1.5 days with 4 - 8 cores.
 
 ```r
 # compute dN/dS table of A. thaliana vs. all other species
 orthologr::map.generator(
                query_file      = "data/CDS/Arabidopsis_thaliana.TAIR10.cds.all.fa.gz",
                subjects.folder = "data/CDS/subject_species",
-               eval            = "1E-5", 
-               ortho_detection = "RBH",
+               eval            = "1E-5", # e value threshold for ortholog detection
+               ortho_detection = "RBH", # use conservative method: BLAST best reciprocal hit
                aa_aln_type      = "pairwise",
-               aa_aln_tool      = "NW", 
+               aa_aln_tool      = "NW", # use Needleman-Wunsch Algorithm for global codon alignment
                codon_aln_tool   = "pal2nal", 
-               dnds_est.method  = "Comeron",
+               dnds_est.method  = "Comeron", # use robust dN/dS estimation (Comeron's method)
                output.folder    = "data/dNdS_maps",
                comp_cores       = 12
                )
