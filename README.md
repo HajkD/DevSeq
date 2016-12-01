@@ -220,7 +220,7 @@ length(names(table(all.maps$query_id))[which(table(all.maps$query_id) == length(
 
 Thus, `7276 A. thaliana` genes have orthologs in all other species.
 
-Look at home many orthologs are shared between 1,2,3,.. species:
+Look at how many orthologs are shared between 1,2,3,.. species:
 
 ```r
 table(table(all.maps$query_id))
