@@ -67,7 +67,7 @@ map.list <- lapply(list.files("data/dNdS_maps/"), function(map) {
 })
 
 # rename list elements 
-names(map.list) <- paste0("Ath_vs_", c("Alyr", "Crub", "Esals", "Mtrunc", "Thassl"))
+names(map.list) <- paste0("Ath_vs_", c("Alyr", "Bdist","Crub", "Esals", "Mtrunc", "Thassl"))
 
 # look at import
 map.list
@@ -89,6 +89,22 @@ $Ath_vs_Alyr
 9  AT1G01090.1.1     470171 0.009104 0.2181 0.04174
 10 AT1G01110.2.1     333544 0.032480 0.1220 0.26620
  ... with 21,644 more rows
+
+$Ath_vs_Bdist
+ A tibble: 11,057 × 5
+        query_id     subject_id     dN    dS    dNdS
+           <chr>          <chr>  <dbl> <dbl>   <dbl>
+1  AT1G01060.4.1 Bradi3g16515.1 0.5286    NA      NA
+2  AT1G01080.1.1 Bradi3g13790.1 0.4573    NA      NA
+3  AT1G01090.1.1 Bradi5g01420.1 0.1562 1.978 0.07898
+4  AT1G01120.1.1 Bradi1g68430.3 0.2972    NA      NA
+5  AT1G01140.1.1 Bradi1g76760.3 0.1980 1.925 0.10290
+6  AT1G01150.1.1 Bradi3g44217.1 0.4754    NA      NA
+7  AT1G01170.2.1 Bradi1g50470.4 0.1974 1.195 0.16530
+8  AT1G01180.1.1 Bradi4g35410.1 0.4742    NA      NA
+9  AT1G01200.1.1 Bradi1g35120.1 0.2354 1.520 0.15490
+10 AT1G01210.3.1 Bradi3g51447.1 0.5341    NA      NA
+ ... with 11,047 more rows
 
 $Ath_vs_Crub
  A tibble: 21,246 × 5
@@ -180,7 +196,7 @@ map.list$Ath_vs_Esals
  ... with 19,972 more rows
 ```
 
-Analogous all other individual dNdS maps can be selected by typing `map.list$Ath_vs_Alyr`, `map.list$Ath_vs_Crub`, `map.list$Ath_vs_Thassl`, etc.
+Analogous all other individual dNdS maps can be selected by typing `map.list$Ath_vs_Alyr`,`map.list$Ath_vs_Bdist`, `map.list$Ath_vs_Crub`, `map.list$Ath_vs_Thassl`, etc.
 
 ### Detection of all `A. thaliana` genes that have intersecting orthologs with all other species
 
@@ -199,10 +215,10 @@ length(names(table(all.maps$query_id))[which(table(all.maps$query_id) == length(
 ```
 
 ```
-9280
+7276
 ```
 
-Thus, `9280 A. thaliana` genes have orthologs in all other species.
+Thus, `7276 A. thaliana` genes have orthologs in all other species.
 
 Look at home many orthologs are shared between 1,2,3,.. species:
 
@@ -211,11 +227,11 @@ table(table(all.maps$query_id))
 ```
 
 ```
-   1    2    3    4    5 
-4185 3363 4635 5080 9280 
+   1    2    3    4    5    6 
+4201 3235 4152 4035 3934 7276 
 ```
 
-Now, we combine all dN, dS, and dNdS information for these `9280` genes.
+Now, we combine all dN, dS, and dNdS information for these `7276` genes.
 
 ```r
 # store all intersecting orthologs in tibble
@@ -250,22 +266,26 @@ final.orthologs
 ```
 
 ```
- A tibble: 9,280 × 21
-        query_id Ath_vs_Alyr_subject_id Ath_vs_Alyr_dN Ath_vs_Alyr_dS Ath_vs_Alyr_dNdS Ath_vs_Crub_subject_id Ath_vs_Crub_dN
-           <chr>                  <chr>          <dbl>          <dbl>            <dbl>                  <chr>          <dbl>
-1  AT1G01040.1.1                 333551       0.013470         0.1165          0.11560        Carubv10008073m        0.02317
-2  AT1G01050.2.1                 909874       0.000000         0.1750          0.00000        Carubv10010288m        0.01063
-3  AT1G01080.1.1                 909871       0.033980         0.1056          0.32170        Carubv10009913m        0.07032
-4  AT1G01090.1.1                 470171       0.009104         0.2181          0.04174        Carubv10009201m        0.01581
-5  AT1G01110.2.1                 333544       0.032480         0.1220          0.26620        Carubv10008796m        0.05539
-6  AT1G01120.1.1                 918858       0.003072         0.1326          0.02317        Carubv10012263m        0.01629
-7  AT1G01170.2.1                 311317       0.000000         0.3064          0.00000        Carubv10010775m        0.02147
-8  AT1G01180.1.1                 909860       0.038320         0.1540          0.24880        Carubv10009834m        0.06208
-9  AT1G01200.1.1                 470156       0.019050         0.1675          0.11370        Carubv10010167m        0.03387
-10 AT1G01225.1.1                 470154       0.013320         0.1122          0.11870        Carubv10028051m        0.02673
- ... with 9,270 more rows, and 14 more variables: Ath_vs_Crub_dS <dbl>, Ath_vs_Crub_dNdS <dbl>, Ath_vs_Esals_subject_id <chr>,
-   Ath_vs_Esals_dN <dbl>, Ath_vs_Esals_dS <dbl>, Ath_vs_Esals_dNdS <dbl>, Ath_vs_Mtrunc_subject_id <chr>, Ath_vs_Mtrunc_dN <dbl>,
-   Ath_vs_Mtrunc_dS <dbl>, Ath_vs_Mtrunc_dNdS <dbl>, Ath_vs_Thassl_subject_id <chr>, Ath_vs_Thassl_dN <dbl>, Ath_vs_Thassl_dS <dbl>,
+ A tibble: 7,276 × 25
+        query_id Ath_vs_Alyr_subject_id Ath_vs_Alyr_dN Ath_vs_Alyr_dS Ath_vs_Alyr_dNdS
+           <chr>                  <chr>          <dbl>          <dbl>            <dbl>
+1  AT1G01080.1.1                 909871       0.033980        0.10560          0.32170
+2  AT1G01090.1.1                 470171       0.009104        0.21810          0.04174
+3  AT1G01120.1.1                 918858       0.003072        0.13260          0.02317
+4  AT1G01170.2.1                 311317       0.000000        0.30640          0.00000
+5  AT1G01180.1.1                 909860       0.038320        0.15400          0.24880
+6  AT1G01200.1.1                 470156       0.019050        0.16750          0.11370
+7  AT1G01225.1.1                 470154       0.013320        0.11220          0.11870
+8  AT1G01230.1.1                 470153       0.002573        0.06798          0.03785
+9  AT1G01260.3.1                 470147       0.016700        0.20880          0.07996
+10 AT1G01280.1.1                 470146       0.026260        0.15670          0.16760
+ ... with 7,266 more rows, and 20 more variables: Ath_vs_Bdist_subject_id <chr>,
+   Ath_vs_Bdist_dN <dbl>, Ath_vs_Bdist_dS <dbl>, Ath_vs_Bdist_dNdS <dbl>,
+   Ath_vs_Crub_subject_id <chr>, Ath_vs_Crub_dN <dbl>, Ath_vs_Crub_dS <dbl>,
+   Ath_vs_Crub_dNdS <dbl>, Ath_vs_Esals_subject_id <chr>, Ath_vs_Esals_dN <dbl>,
+   Ath_vs_Esals_dS <dbl>, Ath_vs_Esals_dNdS <dbl>, Ath_vs_Mtrunc_subject_id <chr>,
+   Ath_vs_Mtrunc_dN <dbl>, Ath_vs_Mtrunc_dS <dbl>, Ath_vs_Mtrunc_dNdS <dbl>,
+   Ath_vs_Thassl_subject_id <chr>, Ath_vs_Thassl_dN <dbl>, Ath_vs_Thassl_dS <dbl>,
    Ath_vs_Thassl_dNdS <dbl>
 ```
 
