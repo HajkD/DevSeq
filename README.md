@@ -16,9 +16,13 @@ via the [biomartr](https://github.com/HajkD/biomartr) package. First, users need
 
 # download CDS for Arabidopsis thaliana
 biomartr::getCDS(db = "ensemblgenomes", organism = "Arabidopsis thaliana", path = "data/CDS")
+# download Proteome for Arabidopsis thaliana
+biomartr::getProteome(db = "ensemblgenomes", organism = "Arabidopsis thaliana", path = "data/Proteome")
 
 # download CDS for Tarenaya hassleriana
 biomartr::getCDS(db = "refseq", organism = "Tarenaya hassleriana", path = "data/CDS/subject_species")
+# download Proteome for Tarenaya hassleriana
+biomartr::getProteome(db = "refseq", organism = "Tarenaya hassleriana", path = "data/Proteome")
 ```
 
 The CDS and Proteome files for `A. lyrata`, `B. distachyon`, `C. rubella`, `E. salsugineum`, `M. truncatula` have been downloaded from [Phytozome V11](https://phytozome.jgi.doe.gov/pz/portal.html) on 17 Nov 2016.
@@ -297,6 +301,73 @@ Store final table in `;` separated file:
 dir.create("data/ortho_table")
 # store final orthologs file in ortho_table folder
 readr::write_delim(final.orthologs, "data/ortho_table/DevSeq_all_species_intersect_orthologs.csv", delim = ";")
+```
+
+## Perform orthology inference with OMA
+
+[OMA (Orthologous MAtrix)](http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-9-518) contains several novel improvement ideas for orthology inference and provides a unique dataset of large-scale orthology assignments.
+
+__Details__: The algorithm of OMA improves upon standard bidirectional best-hit approach in several respects: it uses evolutionary distances instead of scores, considers distance inference uncertainty, includes many-to-many orthologous relations, and accounts for differential gene losses (Roth et al., 2008).
+
+### Installing OMA
+
+The standalone version of OMA has been retrieved from http://omabrowser.org/standalone/.
+
+```sh
+# install OMA Orthology Inference Tool
+curl http://omabrowser.org/standalone/OMA.2.0.0.tgz -o oma.tgz
+tar xvzf oma.tgz
+cd OMA.2.0.0
+sudo ./install.sh
+export PATH=$PATH:/usr/local/OMA/bin
+```
+
+### Prepare folder structure for OMA run (Proteomes)
+
+```sh
+# create new DB folder
+mkdir DB
+```
+
+We stored the __proteome__ fasta files of `A. thaliana`, `A. lyrata`, `B. distachyon`, `C. rubella`, `E. salsugineum`, `M. truncatula`, and `T. hassleriana`
+in the `DB` folder.
+
+Now the parameter file used to run OMA needs to be copied to the working directory.
+
+```sh
+# copy OMA parameter file to working directory
+cp /usr/local/OMA/OMA.2.0.0/parameters.drw ./
+```
+
+We ran OMA with default parameters stored in the file `parameters.drw`.
+
+```sh
+# run OMA for proteomes using 12 cores
+OMA -n 12
+```
+
+### Prepare folder structure for OMA run (Genomes)
+
+```sh
+# create new DB folder
+mkdir DB
+```
+
+We stored the __CDS__ fasta files of `A. thaliana`, `A. lyrata`, `B. distachyon`, `C. rubella`, `E. salsugineum`, `M. truncatula`, and `T. hassleriana`
+in the `DB` folder.
+
+Now the parameter file used to run OMA needs to be copied to the working directory.
+
+```sh
+# copy OMA parameter file to working directory
+cp /usr/local/OMA/OMA.2.0.0/parameters.drw ./
+```
+
+We ran OMA with default parameters stored in the file `parameters.drw`.
+
+```sh
+# run OMA for proteomes using 12 cores
+OMA -n 12
 ```
 
 ## Install `DevSeqR` package
