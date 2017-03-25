@@ -307,7 +307,7 @@ readr::write_delim(final.orthologs, "data/ortho_table/DevSeq_all_species_interse
 
 [OMA (Orthologous MAtrix)](http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-9-518) contains several novel improvement ideas for orthology inference and provides a unique dataset of large-scale orthology assignments.
 
-__Details__: The algorithm of OMA improves upon standard bidirectional best-hit approach in several respects: it uses evolutionary distances instead of scores, considers distance inference uncertainty, includes many-to-many orthologous relations, and accounts for differential gene losses (Roth et al., 2008).
+__Details__: The algorithm of OMA improves upon standard bidirectional best-hit approach in several respects: it uses evolutionary distances instead of scores, considers distance inference uncertainty, includes many-to-many orthologous relations, and accounts for differential gene losses ([Roth et al., 2008](http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-9-518)).
 
 ### Installing OMA
 
