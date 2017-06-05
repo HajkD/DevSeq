@@ -315,11 +315,11 @@ The standalone version of OMA has been retrieved from http://omabrowser.org/stan
 
 ```sh
 # install OMA Orthology Inference Tool
-curl http://omabrowser.org/standalone/OMA.2.0.0.tgz -o oma.tgz
+curl http://omabrowser.org/standalone/OMA.2.1.1.tgz -o oma.tgz
 tar xvzf oma.tgz
-cd OMA.2.0.0
+cd OMA.2.1.1
 sudo ./install.sh
-export PATH=$PATH:/usr/local/OMA/bin
+copy 'export PATH=$PATH:/usr/local/OMA/bin' to ~/.profile under bash (e.g. via 'vi ~/.profile')
 ```
 
 ### Prepare folder structure for OMA run (Proteomes)
@@ -336,14 +336,14 @@ Now the parameter file used to run OMA needs to be copied to the working directo
 
 ```sh
 # copy OMA parameter file to working directory
-cp /usr/local/OMA/OMA.2.0.0/parameters.drw ./
+cp /usr/local/OMA/OMA.2.1.1/parameters.drw ./
 ```
 
 We ran OMA with default parameters stored in the file `parameters.drw`.
 
 ```sh
-# run OMA for proteomes using 12 cores
-OMA -n 12
+# run OMA for proteomes using 16 cores
+OMA -s -n 16
 ```
 
 ### Prepare folder structure for OMA run (Genomes)
@@ -360,14 +360,14 @@ Now the parameter file used to run OMA needs to be copied to the working directo
 
 ```sh
 # copy OMA parameter file to working directory
-cp /usr/local/OMA/OMA.2.0.0/parameters.drw ./
+cp /usr/local/OMA/OMA.2.1.1/parameters.drw ./
 ```
 
 We ran OMA with default parameters stored in the file `parameters.drw`.
 
 ```sh
-# run OMA for proteomes using 12 cores
-OMA -n 12
+# run OMA for proteomes using 16 cores
+OMA -n 16
 ```
 
 ## Install `DevSeqR` package
