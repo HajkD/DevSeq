@@ -2,7 +2,7 @@
 
 ## Reproducible Scripts for the Publication:
 
-Schuster C, Gabel A, Drost H-G, Grosse I, Meyerowitz E. DevSeq: 
+Schuster C, Gabel A, Drost H-G, Leyser O, Grosse I, Meyerowitz E. DevSeq: 
 
 
 ### Reference Genome and Proteome Retrieval
@@ -15,14 +15,22 @@ via the [biomartr](https://github.com/HajkD/biomartr) package. First, users need
 # install.packages("biomartr")
 
 # download CDS for Arabidopsis thaliana
-biomartr::getCDS(db = "ensemblgenomes", organism = "Arabidopsis thaliana", path = "data/CDS")
+biomartr::getCDS(db = "ensemblgenomes",
+                 organism = "Arabidopsis thaliana",
+                 path = "data/CDS")
 # download Proteome for Arabidopsis thaliana
-biomartr::getProteome(db = "ensemblgenomes", organism = "Arabidopsis thaliana", path = "data/Proteome")
+biomartr::getProteome(db = "ensemblgenomes",
+                      organism = "Arabidopsis thaliana",
+                      path = "data/Proteome")
 
 # download CDS for Tarenaya hassleriana
-biomartr::getCDS(db = "refseq", organism = "Tarenaya hassleriana", path = "data/CDS/subject_species")
+biomartr::getCDS(db = "refseq",
+                 organism = "Tarenaya hassleriana",
+                 path = "data/CDS/subject_species")
 # download Proteome for Tarenaya hassleriana
-biomartr::getProteome(db = "refseq", organism = "Tarenaya hassleriana", path = "data/Proteome")
+biomartr::getProteome(db = "refseq",
+                      organism = "Tarenaya hassleriana",
+                      path = "data/Proteome")
 ```
 
 The CDS and Proteome files for `A. lyrata`, `B. distachyon`, `C. rubella`, `E. salsugineum`, `M. truncatula` have been downloaded from [Phytozome V11](https://phytozome.jgi.doe.gov/pz/portal.html) on 17 Nov 2016.
