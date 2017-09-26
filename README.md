@@ -43,6 +43,11 @@ For dNdS computations first users need to [install the orthologr](https://github
 As a next step, please also [install BLAST+](https://github.com/HajkD/orthologr/blob/master/vignettes/Install.Rmd#install-blast) into the `/usr/local/bin` directory on your computer. 
 Please be aware that the following dN/dS computations might run several hours with 12 - 20 cores or even up to 1 - 1.5 days with 4 - 8 cores.
 
+
+## Generate 1:1 orthologs tables
+
+### Generate 1:1 orthologs tables for A. thaliana
+
 ```r
 # compute dN/dS table of A. thaliana vs. all other species
 orthologr::map.generator(
@@ -354,6 +359,26 @@ dir.create("data/ortho_table")
 # store final orthologs file in ortho_table folder
 readr::write_delim(final.orthologs_full, "data/ortho_table/DevSeq_all_species_fulljoin_orthologs.csv", delim = ";")
 ```
+
+### Generate 1:1 orthologs tables for B. distachyon
+
+```r
+# compute dN/dS table of B. distachyon vs. M. truncatula and T. hassleriana
+orthologr::map.generator(
+               query_file      = "data/CDS/Bdistachyon_314_v3.1.cds.fa.gz",
+               subjects.folder = "data/CDS/subject_species_Bdistachyon",
+               eval            = "1E-5", # e value threshold for ortholog detection
+               ortho_detection = "RBH", # use conservative method: BLAST best reciprocal hit
+               aa_aln_type      = "pairwise",
+               aa_aln_tool      = "NW", # use Needleman-Wunsch Algorithm for global codon alignment
+               codon_aln_tool   = "pal2nal", 
+               dnds_est.method  = "Comeron", # use robust dN/dS estimation (Comeron's method)
+               output.folder    = "data/dNdS_maps/Bdistachyon",
+               comp_cores       = 6
+               )
+
+```
+
 
 ## Perform orthology inference with OMA
 
