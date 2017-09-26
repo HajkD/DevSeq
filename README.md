@@ -311,6 +311,50 @@ dir.create("data/ortho_table")
 readr::write_delim(final.orthologs, "data/ortho_table/DevSeq_all_species_intersect_orthologs.csv", delim = ";")
 ```
 
+
+## Generate large table with all genes
+
+```r
+# store all intersecting orthologs in tibble
+all.orthologs <- tibble::as_tibble(names(table(all.maps$query_id))[which(table(all.maps$query_id) == length(map.list))])
+colnames(all.orthologs) <- "query_id"
+
+# generate full orthologs tables
+orthologs_full <- lapply(map.list, function(x) dplyr::full_join(all.orthologs, x, by = "query_id"))
+
+# join orthologs tables to a final cross-species orthologs dNdS file including all genes
+final.orthologs_full <- orthologs_full$Ath_vs_Alyr
+for (i in (seq_along(map.list) - 1)) {
+    final.orthologs_full <- dplyr::full_join(final.orthologs_full, orthologs_full[[i + 1]], by = "query_id")
+}
+
+# filter table
+final.orthologs_full <- dplyr::select(
+    final.orthologs_full,
+    -Ath_vs_Alyr_subject_id.x,
+    -Ath_vs_Alyr_dN.x,
+    -Ath_vs_Alyr_dS.x,
+    -Ath_vs_Alyr_dNdS.x
+)
+colnames(final.orthologs_full)[2:5] <-
+    c("Ath_vs_Alyr_subject_id",
+      "Ath_vs_Alyr_dN",
+      "Ath_vs_Alyr_dS",
+      "Ath_vs_Alyr_dNdS")
+
+# looking at the final table
+final.orthologs_full
+```
+
+Store final table in `;` separated file:
+
+```r
+# create new folder "ortho_table"
+dir.create("data/ortho_table")
+# store final orthologs file in ortho_table folder
+readr::write_delim(final.orthologs_full, "data/ortho_table/DevSeq_all_species_fulljoin_orthologs.csv", delim = ";")
+```
+
 ## Perform orthology inference with OMA
 
 [OMA (Orthologous MAtrix)](http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-9-518) contains several novel improvement ideas for orthology inference and provides a unique dataset of large-scale orthology assignments.
@@ -353,6 +397,10 @@ We ran OMA with default parameters stored in the file `parameters.drw`.
 # run OMA for proteomes using 16 cores
 OMA -s -n 16
 ```
+
+The output of the `OMA` run has been stored in `data/OMA_Output`.
+
+
 
 ### Prepare folder structure for OMA run (Genomes)
 
