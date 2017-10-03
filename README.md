@@ -354,7 +354,7 @@ final.orthologs_full
 Store final table in `;` separated file:
 
 ```r
-# create new folder "ortho_table"
+# create new folder "ortho_table" 
 dir.create("data/ortho_table")
 # store final orthologs file in ortho_table folder
 readr::write_delim(final.orthologs_full, "data/ortho_table/DevSeq_all_species_fulljoin_orthologs.csv", delim = ";")
@@ -377,6 +377,25 @@ orthologr::map.generator(
                comp_cores       = 6
                )
 
+```
+
+
+### Generate 1:1 orthologs tables for C. rubella
+
+```r
+# compute dN/dS table of C. rubella vs. E. salsugineum, M. truncatula,  T. hassleriana, and B. distachyon
+orthologr::map.generator(
+               query_file      = "data/CDS/Crubella_183_v1.0.cds.fa.gz",
+               subjects.folder = "data/CDS/subject_species_Crubella/",
+               eval            = "1E-5", # e value threshold for ortholog detection
+               ortho_detection = "RBH", # use conservative method: BLAST best reciprocal hit
+               aa_aln_type      = "pairwise",
+               aa_aln_tool      = "NW", # use Needleman-Wunsch Algorithm for global codon alignment
+               codon_aln_tool   = "pal2nal", 
+               dnds_est.method  = "Comeron", # use robust dN/dS estimation (Comeron's method)
+               output.folder    = "data/dNdS_maps/",
+               comp_cores       = 6
+               )
 ```
 
 
