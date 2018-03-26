@@ -18,11 +18,12 @@ via the [biomartr](https://github.com/HajkD/biomartr) package. First, users need
 biomartr::getCDS(db = "ensemblgenomes",
                  organism = "Arabidopsis thaliana",
                  path = "data/CDS")
+                 
 # download Proteome for Arabidopsis thaliana
 biomartr::getProteome(db = "ensemblgenomes",
                       organism = "Arabidopsis thaliana",
                       path = "data/Proteome")
-
+                 
 # download CDS for Tarenaya hassleriana
 biomartr::getCDS(db = "refseq",
                  organism = "Tarenaya hassleriana",
@@ -33,7 +34,7 @@ biomartr::getProteome(db = "refseq",
                       path = "data/Proteome")
 ```
 
-The CDS and Proteome files for `A. lyrata`, `B. distachyon`, `C. rubella`, `E. salsugineum`, `M. truncatula` have been downloaded from [Phytozome V11](https://phytozome.jgi.doe.gov/pz/portal.html) on 17 Nov 2016.
+The CDS and Proteome files for `A. lyrata`, `B. distachyon`, `C. rubella`, `E. salsugineum`, `M. truncatula` have been downloaded from [Phytozome V11](https://phytozome.jgi.doe.gov/pz/portal.html) on 17 Nov 2016. The CDS sequences for `Picea abies` were downloaded from ftp://plantgenie.org/Data/ConGenIE/Picea_abies/v1.0/FASTA/GenePrediction/Pabies1.0-all-cds.fna.gz on 26 Mar 2018.
 
 ### Perform Orthology Inference and Generate dN/dS tables
 
