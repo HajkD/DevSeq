@@ -511,3 +511,126 @@ DevSeqSample
  ... with 130 more rows, and 5 more variables: Age <chr>, Substrate <chr>,
    Photoperiod <chr>, Replicates <dbl>, Sample_size <chr>
 ```
+
+### Reference Genome and Proteome Retrieval
+
+The CDS files for the organisms of the [Brawand sutdy](https://www.nature.com/articles/nature10532) have been retrieved from ENSEMBL
+via the [biomartr](https://github.com/HajkD/biomartr) package. 
+
+```r
+organisms <- c("Homo sapiens", "Pan troglodytes", "Pan paniscus", "Gorilla gorilla", "Pongo abelii", "Macaca mulatta", "Mus musculus", "Monodelphis domestica", "Ornithorhynchus anatinus", "Gallus gallus")
+dest_cds_dir <- "data/CDS/subject_species"
+dnds_dir <- "data/dNdS_maps/"
+cds_files <- c()
+
+if(file.exists(dest_cds_dir)){
+  dir.create(dest_cds_dir, recursive = TRUE)
+}else{
+  cds_files <- dir(dest_cds_dir)
+}
+
+for(i in organisms){
+
+  down_dir <- dest_cds_dir
+    if(grepl(pattern = "Homo", x= i, ignore.case = T)){
+      down_dir <- file.path(down_dir, "..")
+    }
+    biomartr::getCDS(db = "ensembl",
+                     organism = i,
+                     path = down_dir)
+}
+```
+## Generate 1:1 orthologs tables
+
+### Generate 1:1 orthologs tables for _H. sapiens_
+
+```r
+# compute dN/dS table of A. thaliana vs. all other species
+orthologr::map.generator(
+               query_file      =file.path(dest_cds_dir,"..","Homo_sapiens.GRCh38.cds.all.fa.gz"),
+               subjects.folder = dest_cds_dir,
+               eval            = "1E-5", # e value threshold for ortholog detection
+               ortho_detection = "RBH", # use conservative method: BLAST best reciprocal hit
+               aa_aln_type      = "pairwise",
+               aa_aln_tool      = "NW", # use Needleman-Wunsch Algorithm for global codon alignment
+               codon_aln_tool   = "pal2nal", 
+               dnds_est.method  = "Comeron", # use robust dN/dS estimation (Comeron's method)
+               output.folder    = dnds_dir,
+               comp_cores       = 10
+               )
+
+```
+
+
+Import all dNdS maps:
+
+```r
+# Import all dNdS maps and store each pairwise comparison as list element
+# of map.list
+
+map.list <- lapply(list.files(dnds_dir), function(map) {
+    
+    readr::read_delim(
+        file.path(dnds_dir, map),
+        col_names = TRUE,
+        delim = ";",
+        col_types = readr::cols("query_id" = readr::col_character(),
+                                "subject_id"= readr::col_character(),
+                                "dN" = readr::col_double(),
+                                "dS"  = readr::col_double(),
+                                "dNdS" = readr::col_double())
+    )
+})
+
+# rename list elements 
+names(map.list) <- paste0("Ath_vs_", c("Alyr", "Bdist","Crub", "Esals", "Mtrunc", "Thassl"))
+```
+
+```r
+# rename colnames of individual dNdS maps
+for (i in seq_along(map.list)) {
+   colnames(map.list[[i]])[2:5] <- paste0(names(map.list)[i], c("_subject_id","_dN", "_dS", "_dNdS"))
+}
+
+# combine all geneids into one file
+all.maps <- dplyr::bind_rows(lapply(map.list, function(x) tibble::as_tibble(unique(x$query_id))))
+colnames(all.maps) <- "query_id"
+
+# detect genes that have orthologs in all other species
+length(names(table(all.maps$query_id))[which(table(all.maps$query_id) == length(map.list))])
+
+# store all intersecting orthologs in tibble
+all.orthologs <- tibble::as_tibble(names(table(all.maps$query_id))[which(table(all.maps$query_id) == length(map.list))])
+colnames(all.orthologs) <- "query_id"
+
+# generate full orthologs tables
+orthologs_full <- lapply(map.list, function(x) dplyr::full_join(all.orthologs, x, by = "query_id"))
+
+# join orthologs tables to a final cross-species orthologs dNdS file including all genes
+final.orthologs_full <- orthologs_full$Hsap_vs_Ggal
+for (i in (seq_along(map.list) - 1)) {
+    final.orthologs_full <- dplyr::full_join(final.orthologs_full, orthologs_full[[i + 1]], by = "query_id")
+}
+
+# filter table
+final.orthologs_full <- dplyr::select(
+    final.orthologs_full,
+    -Hsap_vs_Ggal_subject_id.x,
+    -Hsap_vs_Ggal_dN.x,
+    -Hsap_vs_Ggal_dS.x,
+    -Hsap_vs_Ggal_dNdS.x
+)
+colnames(final.orthologs_full)[2:5] <-
+    c("Hsap_vs_Ggal_subject_id",
+      "Hsap_vs_Ggal_dN",
+      "Hsap_vs_Ggal_dS",
+      "Hsap_vs_Ggal_dNdS")
+
+# looking at the final table
+final.orthologs_full
+
+# create new folder "ortho_table" 
+dir.create("data/ortho_table")
+# store final orthologs file in ortho_table folder
+readr::write_delim(final.orthologs_full, "data/ortho_table/Brawand_all_species_fulljoin_orthologs.csv", delim = ";")
+```
