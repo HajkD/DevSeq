@@ -585,7 +585,7 @@ map.list <- lapply(list.files(dnds_dir), function(map) {
 # rename list elements 
 names(map.list) <- paste0("Ath_vs_", c("Alyr", "Bdist","Crub", "Esals", "Mtrunc", "Thassl"))
 ```
-
+### Detection of all `_H. sapiens_` genes that have intersecting orthologs with all other species
 ```r
 # rename colnames of individual dNdS maps
 for (i in seq_along(map.list)) {
@@ -602,6 +602,43 @@ length(names(table(all.maps$query_id))[which(table(all.maps$query_id) == length(
 # store all intersecting orthologs in tibble
 all.orthologs <- tibble::as_tibble(names(table(all.maps$query_id))[which(table(all.maps$query_id) == length(map.list))])
 colnames(all.orthologs) <- "query_id"
+
+# generate orthologs tables
+orthologs <- lapply(map.list, function(x) dplyr::inner_join(all.orthologs, x, by = "query_id"))
+
+# join orthologs tables to a final cross-species orthologs dNdS file
+final.orthologs <- orthologs[[1]]
+for (i in (seq_along(map.list) - 1)) {
+    final.orthologs <- dplyr::inner_join(final.orthologs, orthologs[[i + 1]], by = "query_id")
+}
+
+# filter table
+final.orthologs <- dplyr::select(
+    final.orthologs,
+    -Hsap_vs_Ggal_subject_id.x,
+    -Hsap_vs_Ggal_dN.x,
+    -Hsap_vs_Ggal_dS.x,
+    -Hsap_vs_Ggal_dNdS.x
+)
+colnames(final.orthologs)[2:5] <-
+    c("Hsap_vs_Ggal_subject_id",
+      "Hsap_vs_Ggal_dN",
+      "Hsap_vs_Ggal_dS",
+      "Hsap_vs_Ggal_dNdS")
+
+# looking at the final table
+final.orthologs
+
+# create new folder "ortho_table"
+dir.create("data/ortho_table")
+# store final orthologs file in ortho_table folder
+readr::write_delim(final.orthologs, "data/ortho_table/Brawand_all_species_intersect_orthologs.csv", delim = ";")
+
+# store all intersecting orthologs in tibble
+all.orthologs <- tibble::as_tibble(names(table(all.maps$query_id))[which(table(all.maps$query_id) == length(map.list))])
+colnames(all.orthologs) <- "query_id"
+
+## Generate large table with all genes
 
 # generate full orthologs tables
 orthologs_full <- lapply(map.list, function(x) dplyr::full_join(all.orthologs, x, by = "query_id"))
