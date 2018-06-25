@@ -545,7 +545,7 @@ for(i in organisms){
 ### Generate 1:1 orthologs tables for _H. sapiens_
 
 ```r
-# compute dN/dS table of A. thaliana vs. all other species
+# compute dN/dS table of H. sapiens vs. all other species
 orthologr::map.generator(
                query_file      =file.path(dest_cds_dir,"..","Homo_sapiens.GRCh38.cds.all.fa.gz"),
                subjects.folder = dest_cds_dir,
@@ -583,7 +583,8 @@ map.list <- lapply(list.files(dnds_dir), function(map) {
 })
 
 # rename list elements 
-names(map.list) <- paste0("Ath_vs_", c("Alyr", "Bdist","Crub", "Esals", "Mtrunc", "Thassl"))
+names(map.list) <- paste0("Hsap_vs_", c("Ggal", "Ggor","Mmul", "Mdom", "Mmus", "Oana", "Ppan", "Ptro","Pabe"))
+
 ```
 ### Detection of all `_H. sapiens_` genes that have intersecting orthologs with all other species
 ```r
@@ -639,7 +640,7 @@ all.orthologs <- tibble::as_tibble(names(table(all.maps$query_id))[which(table(a
 colnames(all.orthologs) <- "query_id"
 ```
 
-## Generate large table with all genes
+### Generate large table with all genes
 
 ```r
 # generate full orthologs tables
