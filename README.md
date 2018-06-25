@@ -512,9 +512,9 @@ DevSeqSample
    Photoperiod <chr>, Replicates <dbl>, Sample_size <chr>
 ```
 
-### Reference Genome and Proteome Retrieval
+### Retrieval of Coding sequences
 
-The CDS files for the organisms of the [Brawand sutdy](https://www.nature.com/articles/nature10532) have been retrieved from ENSEMBL
+The CDS files for the organisms of the [Brawand sutdy](https://www.nature.com/articles/nature10532) have been retrieved from ENSEMBL (release 92)
 via the [biomartr](https://github.com/HajkD/biomartr) package. 
 
 ```r
