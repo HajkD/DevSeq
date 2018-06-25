@@ -586,7 +586,7 @@ map.list <- lapply(list.files(dnds_dir), function(map) {
 names(map.list) <- paste0("Hsap_vs_", c("Ggal", "Ggor","Mmul", "Mdom", "Mmus", "Oana", "Ppan", "Ptro","Pabe"))
 
 ```
-### Detection of all `_H. sapiens_` genes that have intersecting orthologs with all other species
+### Detection of all `H. sapiens` genes that have intersecting orthologs with all other species
 ```r
 # rename colnames of individual dNdS maps
 for (i in seq_along(map.list)) {
