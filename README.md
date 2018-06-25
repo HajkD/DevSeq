@@ -637,9 +637,11 @@ readr::write_delim(final.orthologs, "data/ortho_table/Brawand_all_species_inters
 # store all intersecting orthologs in tibble
 all.orthologs <- tibble::as_tibble(names(table(all.maps$query_id))[which(table(all.maps$query_id) == length(map.list))])
 colnames(all.orthologs) <- "query_id"
+```
 
 ## Generate large table with all genes
 
+```r
 # generate full orthologs tables
 orthologs_full <- lapply(map.list, function(x) dplyr::full_join(all.orthologs, x, by = "query_id"))
 
