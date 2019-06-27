@@ -2,14 +2,23 @@
 
 ## Reproducible Scripts for the Publication:
 
-Schuster C, Gabel A, Drost H-G, Leyser O, Grosse I, Meyerowitz E. DevSeq: 
+> Schuster C, Gabel A, Drost H-G, Leyser O, Grosse I, Meyerowitz E. Comparative developmental transcriptome atlases across nine plant body plan organs.
 
 
-### Reference Genome and Proteome Retrieval
+* [1. Resource Retrieval](#Resource Retrieval)
+    - [1.1 Reference Genome and CDS Retrieval](#reference-genome-and-cds-retrieval)
+    - [1.2 Software Retrieval](#reference-genome-and-cds-retrieval)
+* [2. Orthology Inference and dNdS Estimation](#orthology-inference-and-dnds-estimation)
+    - [2.1 BLAST best reciprocal hit](#blast-best-reciprocal-hit)
+    - [2.2 Orthogroup Inference with Orthofinder2](#orthogroup-inference-with-orthofinder2)
 
-The CDS and proteome files of _Arabidopsis thaliana_ have been retrieved from ENSEMBL
-via the [biomartr](https://github.com/HajkD/biomartr) package. First, users need to
-[install the biomartr](https://github.com/HajkD/biomartr#installation) package.
+## Resource Retrieval
+
+### Reference Genome and CDS Retrieval
+
+The reference genomes used for all analyses were obtained from diverse databases:
+
+
 
 ```r
 # install.packages("biomartr")
@@ -36,14 +45,23 @@ biomartr::getProteome(db = "refseq",
 
 The CDS and Proteome files for `A. lyrata`, `B. distachyon`, `C. rubella`, `E. salsugineum`, `M. truncatula` have been downloaded from [Phytozome V11](https://phytozome.jgi.doe.gov/pz/portal.html) on 17 Nov 2016. The CDS sequences for `Picea abies` were downloaded from ftp://plantgenie.org/Data/ConGenIE/Picea_abies/v1.0/FASTA/GenePrediction/Pabies1.0-all-cds.fna.gz on 26 Mar 2018.
 
-### Perform Orthology Inference and Generate dN/dS tables
+### Software Retrieval
 
-### Installing the orthologr package
+#### Installing the orthologr package
 
 For dNdS computations first users need to [install the orthologr](https://github.com/HajkD/orthologr#installation-guide) package. 
 As a next step, please also [install BLAST+](https://github.com/HajkD/orthologr/blob/master/vignettes/Install.Rmd#install-blast) into the `/usr/local/bin` directory on your computer. 
 Please be aware that the following dN/dS computations might run several hours with 12 - 20 cores or even up to 1 - 1.5 days with 4 - 8 cores.
 
+The coding sequence files of _Arabidopsis thaliana_ have been retrieved from ENSEMBL
+via the [biomartr](https://github.com/HajkD/biomartr) package. First, users need to
+[install the biomartr](https://github.com/HajkD/biomartr#installation) package.
+
+
+### Orthology Inference and dNdS Estimation
+
+
+### BLAST best reciprocal hit
 
 ## Generate 1:1 orthologs tables
 
@@ -71,10 +89,10 @@ Import all dNdS maps:
 ```r
 # Import all dNdS maps and store each pairwise comparison as list element
 # of map.list
-map.list <- lapply(list.files("data/dNdS_maps/"), function(map) {
+map.list <- lapply(list.files("data/dNdS_maps_athaliana/"), function(map) {
     
     readr::read_delim(
-        file.path("data/dNdS_maps/",map),
+        file.path("data/dNdS_maps_athaliana/",map),
         col_names = TRUE,
         delim = ";",
         col_types = readr::cols("query_id" = readr::col_character(),
