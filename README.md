@@ -418,75 +418,19 @@ orthologr::map.generator(
 ```
 
 
-## Perform orthology inference with OMA
-
-[OMA (Orthologous MAtrix)](http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-9-518) contains several novel improvement ideas for orthology inference and provides a unique dataset of large-scale orthology assignments.
-
-__Details__: The algorithm of OMA improves upon standard bidirectional best-hit approach in several respects: it uses evolutionary distances instead of scores, considers distance inference uncertainty, includes many-to-many orthologous relations, and accounts for differential gene losses ([Roth et al., 2008](http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-9-518)).
-
-### Installing OMA
-
-The standalone version of OMA has been retrieved from http://omabrowser.org/standalone/.
-
-```sh
-# install OMA Orthology Inference Tool
-curl http://omabrowser.org/standalone/OMA.2.1.1.tgz -o oma.tgz
-tar xvzf oma.tgz
-cd OMA.2.1.1
-sudo ./install.sh
-copy 'export PATH=$PATH:/usr/local/OMA/bin' to ~/.profile under bash (e.g. via 'vi ~/.profile')
-```
-
-### Prepare folder structure for OMA run (Proteomes)
-
-```sh
-# create new DB folder
-mkdir DB
-```
-
-We stored the __proteome__ fasta files of `A. thaliana`, `A. lyrata`, `B. distachyon`, `C. rubella`, `E. salsugineum`, `M. truncatula`, and `T. hassleriana`
-in the `DB` folder.
-
-Now the parameter file used to run OMA needs to be copied to the working directory.
-
-```sh
-# copy OMA parameter file to working directory
-cp /usr/local/OMA/OMA.2.1.1/parameters.drw ./
-```
-
-We ran OMA with default parameters stored in the file `parameters.drw`.
-
-```sh
-# run OMA for proteomes using 16 cores
-OMA -s -n 16
-```
-
-The output of the `OMA` run has been stored in `data/OMA_Output`.
+### Orthogroup Inference with Orthofinder2
 
 
+```r
+orthologr::translate_cds_to_protein_all()
 
-### Prepare folder structure for OMA run (Genomes)
+orthologr::retrieve_longest_isoforms_all(proteome_folder = "devseq_orthofinder_protein_2019_06_27", 
+                           annotation_folder = "devseq_orthologr_gtf_2019_06_19", 
+                           output_folder = "devseq_orthofinder_protein_longest_2019_06_27",
+                           annotation_format = "gtf")
 
-```sh
-# create new DB folder
-mkdir DB
-```
 
-We stored the __CDS__ fasta files of `A. thaliana`, `A. lyrata`, `B. distachyon`, `C. rubella`, `E. salsugineum`, `M. truncatula`, and `T. hassleriana`
-in the `DB` folder.
-
-Now the parameter file used to run OMA needs to be copied to the working directory.
-
-```sh
-# copy OMA parameter file to working directory
-cp /usr/local/OMA/OMA.2.1.1/parameters.drw ./
-```
-
-We ran OMA with default parameters stored in the file `parameters.drw`.
-
-```sh
-# run OMA for proteomes using 16 cores
-OMA -n 16
+orthologr::orthofinder2(proteome_folder = "devseq_orthofinder_protein_longest_2019_06_27", comp_cores = 4)
 ```
 
 ## Install `DevSeqR` package
