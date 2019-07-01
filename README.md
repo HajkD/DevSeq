@@ -69,16 +69,16 @@ via the [biomartr](https://github.com/HajkD/biomartr) package. First, users need
 
 ```r
 # compute dN/dS table of A. thaliana vs. all other species
-orthologr::map.generator(
-               query_file      = "data/CDS/Arabidopsis_thaliana.TAIR10.cds.all.fa.gz",
-               subjects.folder = "data/CDS/subject_species",
+orthologr::map_generator(
+               query_file      = "data/DevSeq_CDS/Query_files/Athaliana.fa",
+               subjects.folder = "data/CDS/Athaliana_subject_files",
                eval            = "1E-5", # e value threshold for ortholog detection
                ortho_detection = "RBH", # use conservative method: BLAST best reciprocal hit
                aa_aln_type      = "pairwise",
                aa_aln_tool      = "NW", # use Needleman-Wunsch Algorithm for global codon alignment
                codon_aln_tool   = "pal2nal", 
                dnds_est.method  = "Comeron", # use robust dN/dS estimation (Comeron's method)
-               output.folder    = "data/dNdS_maps",
+               output.folder    = "data/DevSeq_dNdS_maps/OrthologR/DevSeq_Plants/Query_Athaliana/",
                comp_cores       = 12
                )
 
@@ -87,125 +87,131 @@ orthologr::map.generator(
 Import all dNdS maps:
 
 ```r
-# Import all dNdS maps and store each pairwise comparison as list element
-# of map.list
-map.list <- lapply(list.files("data/dNdS_maps_athaliana/"), function(map) {
+# Import all A thaliana dNdS maps and store each pairwise comparison as list element
+Ath_pairwise_dNdS_maps <- lapply(list.files("data/DevSeq_dNdS_maps/OrthologR/DevSeq_Plants/Query_Athaliana/"), function(map) {
     
     readr::read_delim(
-        file.path("data/dNdS_maps_athaliana/",map),
+        file.path("data/DevSeq_dNdS_maps/OrthologR/DevSeq_Plants/Query_Athaliana/", map),
         col_names = TRUE,
-        delim = ";",
-        col_types = readr::cols("query_id" = readr::col_character(),
-                                "subject_id"= readr::col_character(),
-                                "dN" = readr::col_double(),
-                                "dS"  = readr::col_double(),
-                                "dNdS" = readr::col_double())
+        delim = ";"
     )
 })
 
 # rename list elements 
-names(map.list) <- paste0("Ath_vs_", c("Alyr", "Bdist","Crub", "Esals", "Mtrunc", "Thassl"))
+names(Ath_pairwise_dNdS_maps) <- paste0("Athaliana_vs_", c("Alyrata", "Bdistachyon","Crubella", "Esalsugineum", "Mtruncatula", "Thassleriana"))
 
 # look at import
-map.list
+Ath_pairwise_dNdS_maps
 ```
 
 ```
-$Ath_vs_Alyr
- A tibble: 21,654 × 5
-        query_id subject_id       dN     dS    dNdS
-           <chr>      <chr>    <dbl>  <dbl>   <dbl>
-1  AT1G01010.1.1     333554 0.106400 0.2537 0.41950
-2  AT1G01020.1.1     470181 0.040230 0.1037 0.38790
-3  AT1G01030.1.1     470180 0.014990 0.1265 0.11850
-4  AT1G01040.1.1     333551 0.013470 0.1165 0.11560
-5  AT1G01050.2.1     909874 0.000000 0.1750 0.00000
-6  AT1G01060.8.1     470177 0.044950 0.1133 0.39670
-7  AT1G01070.1.1     918864 0.018300 0.1059 0.17280
-8  AT1G01080.1.1     909871 0.033980 0.1056 0.32170
-9  AT1G01090.1.1     470171 0.009104 0.2181 0.04174
-10 AT1G01110.2.1     333544 0.032480 0.1220 0.26620
- ... with 21,644 more rows
+$Athaliana_vs_Alyrata
+# A tibble: 23,844 x 15
+   query_id subject_id      dN    dS   dNdS perc_identity alig_length
+   <chr>    <chr>        <dbl> <dbl>  <dbl>         <dbl>       <dbl>
+ 1 AT1G010… AL1G11530… 0.106   0.254 0.420           74.0         469
+ 2 AT1G010… AL1G11510… 0.0402  0.104 0.388           91.1         246
+ 3 AT1G010… AL1G11500… 0.0565  0.210 0.270           96.3         298
+ 4 AT1G010… AL1G11480… 0.0134  0.117 0.115           96.2        1915
+ 5 AT1G010… AL1G11470… 0       0.175 0              100           213
+ 6 AT1G010… AL1G11460… 0.0444  0.117 0.379           88.5         654
+ 7 AT1G010… AL1G11450… 0.0183  0.106 0.173           95.1         366
+ 8 AT1G010… AL1G11440… 0.0340  0.110 0.310           82.9         327
+ 9 AT1G010… AL1G11430… 0.00910 0.218 0.0417          96.8         434
+10 AT1G011… AL1G11410… 0.0325  0.122 0.266           93.6         528
+# … with 23,834 more rows, and 8 more variables: mismatches <dbl>,
+#   gap_openings <dbl>, q_start <dbl>, q_end <dbl>, s_start <dbl>,
+#   s_end <dbl>, evalue <dbl>, bit_score <dbl>
 
-$Ath_vs_Bdist
- A tibble: 11,057 × 5
-        query_id     subject_id     dN    dS    dNdS
-           <chr>          <chr>  <dbl> <dbl>   <dbl>
-1  AT1G01060.4.1 Bradi3g16515.1 0.5286    NA      NA
-2  AT1G01080.1.1 Bradi3g13790.1 0.4573    NA      NA
-3  AT1G01090.1.1 Bradi5g01420.1 0.1562 1.978 0.07898
-4  AT1G01120.1.1 Bradi1g68430.3 0.2972    NA      NA
-5  AT1G01140.1.1 Bradi1g76760.3 0.1980 1.925 0.10290
-6  AT1G01150.1.1 Bradi3g44217.1 0.4754    NA      NA
-7  AT1G01170.2.1 Bradi1g50470.4 0.1974 1.195 0.16530
-8  AT1G01180.1.1 Bradi4g35410.1 0.4742    NA      NA
-9  AT1G01200.1.1 Bradi1g35120.1 0.2354 1.520 0.15490
-10 AT1G01210.3.1 Bradi3g51447.1 0.5341    NA      NA
- ... with 11,047 more rows
+$Athaliana_vs_Bdistachyon
+# A tibble: 12,148 x 15
+   query_id subject_id    dN    dS    dNdS perc_identity alig_length mismatches
+   <chr>    <chr>      <dbl> <dbl>   <dbl>         <dbl>       <dbl>      <dbl>
+ 1 AT1G010… Bradi3g16… 0.549 NA    NA               38.0         397        198
+ 2 AT1G010… Bradi3g13… 0.457 NA    NA               53.4         189         87
+ 3 AT1G010… Bradi5g01… 0.156  1.98  0.0790          86.7         354         44
+ 4 AT1G011… Bradi1g68… 0.297 NA    NA               60           550        186
+ 5 AT1G011… Bradi1g76… 0.198  1.92  0.103           72.6         445        115
+ 6 AT1G011… Bradi1g50… 0.197  1.20  0.165           72.6          73         20
+ 7 AT1G011… Bradi4g35… 0.474 NA    NA               56.5         248        101
+ 8 AT1G012… Bradi1g35… 0.235  1.52  0.155           65.4         214         63
+ 9 AT1G012… Bradi1g77… 0.255  2.77  0.0919          63.2        1060        365
+10 AT1G012… Bradi4g35… 0.263 NA    NA               66.3         249         77
+# … with 12,138 more rows, and 7 more variables: gap_openings <dbl>,
+#   q_start <dbl>, q_end <dbl>, s_start <dbl>, s_end <dbl>, evalue <dbl>,
+#   bit_score <dbl>
 
-$Ath_vs_Crub
- A tibble: 21,246 × 5
-        query_id      subject_id      dN     dS    dNdS
-           <chr>           <chr>   <dbl>  <dbl>   <dbl>
-1  AT1G01010.1.1 Carubv10009049m 0.11180 0.2760 0.40520
-2  AT1G01020.1.1 Carubv10011984m 0.08264 0.1810 0.45650
-3  AT1G01030.1.1 Carubv10009540m 0.02824 0.2248 0.12560
-4  AT1G01040.1.1 Carubv10008073m 0.02317 0.2349 0.09863
-5  AT1G01050.2.1 Carubv10010288m 0.01063 0.2386 0.04453
-6  AT1G01060.4.1 Carubv10008551m 0.05169 0.2002 0.25820
-7  AT1G01070.1.1 Carubv10009303m 0.08801 0.3165 0.27800
-8  AT1G01080.1.1 Carubv10009913m 0.07032 0.2134 0.32940
-9  AT1G01090.1.1 Carubv10009201m 0.01581 0.3457 0.04573
-10 AT1G01110.2.1 Carubv10008796m 0.05539 0.2266 0.24440
- ... with 21,236 more rows
+$Athaliana_vs_Crubella
+# A tibble: 22,721 x 15
+   query_id subject_id     dN    dS   dNdS perc_identity alig_length mismatches
+   <chr>    <chr>       <dbl> <dbl>  <dbl>         <dbl>       <dbl>      <dbl>
+ 1 AT1G010… Carubv100… 0.112  0.276 0.405           68.5         482         88
+ 2 AT1G010… Carubv100… 0.0826 0.181 0.456           84.0         244         38
+ 3 AT1G010… Carubv100… 0.0282 0.225 0.126           93.9         361         19
+ 4 AT1G010… Carubv100… 0.0232 0.236 0.0980          94.5        1915         94
+ 5 AT1G010… Carubv100… 0.0106 0.239 0.0445          97.7         213          5
+ 6 AT1G010… Carubv100… 0.0540 0.202 0.267           87.9         651         68
+ 7 AT1G010… Carubv100… 0.0880 0.316 0.278           82.2         371         60
+ 8 AT1G010… Carubv100… 0.0703 0.213 0.329           85.1         295         35
+ 9 AT1G010… Carubv100… 0.0158 0.346 0.0457          95.2         433         15
+10 AT1G011… Carubv100… 0.0554 0.227 0.244           84.9         543         63
+# … with 22,711 more rows, and 7 more variables: gap_openings <dbl>,
+#   q_start <dbl>, q_end <dbl>, s_start <dbl>, s_end <dbl>, evalue <dbl>,
+#   bit_score <dbl>
 
-$Ath_vs_Esals
- A tibble: 19,982 × 5
-        query_id      subject_id       dN     dS    dNdS
-           <chr>           <chr>    <dbl>  <dbl>   <dbl>
-1  AT1G01010.1.1 Thhalv10007665m 0.181900 0.3618 0.50280
-2  AT1G01020.1.1 Thhalv10008618m 0.101300 0.2806 0.36100
-3  AT1G01030.1.1 Thhalv10008068m 0.025890 0.2531 0.10230
-4  AT1G01040.1.1 Thhalv10006531m 0.033420 0.3129 0.10680
-5  AT1G01050.2.1 Thhalv10008767m 0.007183 0.3848 0.01867
-6  AT1G01060.8.1 Thhalv10007029m 0.096500 0.2749 0.35100
-7  AT1G01070.1.1 Thhalv10009501m 0.085800 0.3232 0.26550
-8  AT1G01080.1.1 Thhalv10008355m 0.063880 0.2909 0.21960
-9  AT1G01090.1.1 Thhalv10007695m 0.022560 0.4576 0.04930
-10 AT1G01110.2.1 Thhalv10007299m 0.060020 0.3247 0.18480
- ... with 19,972 more rows
+$Athaliana_vs_Esalsugineum
+# A tibble: 22,831 x 15
+   query_id subject_id      dN    dS   dNdS perc_identity alig_length
+   <chr>    <chr>        <dbl> <dbl>  <dbl>         <dbl>       <dbl>
+ 1 AT1G010… Thhalv100… 0.182   0.362 0.503           64.9         445
+ 2 AT1G010… Thhalv100… 0.101   0.281 0.361           81.1         244
+ 3 AT1G010… Thhalv100… 0.0259  0.253 0.102           91.9         360
+ 4 AT1G010… Thhalv100… 0.0334  0.314 0.106           92.9        1923
+ 5 AT1G010… NewID_000… 0.00718 0.385 0.0187          98.6         213
+ 6 AT1G010… NewID_000… 0.0965  0.275 0.351           77.6         664
+ 7 AT1G010… NewID_000… 0.0855  0.323 0.265           84.2         367
+ 8 AT1G010… NewID_000… 0.0639  0.291 0.220           86.9         297
+ 9 AT1G010… NewID_000… 0.0226  0.458 0.0493          94.2         432
+10 AT1G011… Thhalv100… 0.0600  0.325 0.185           84.3         547
+# … with 22,821 more rows, and 8 more variables: mismatches <dbl>,
+#   gap_openings <dbl>, q_start <dbl>, q_end <dbl>, s_start <dbl>,
+#   s_end <dbl>, evalue <dbl>, bit_score <dbl>
 
-$Ath_vs_Mtrunc
- A tibble: 12,863 × 5
-        query_id      subject_id      dN    dS    dNdS
-           <chr>           <chr>   <dbl> <dbl>   <dbl>
-1  AT1G01040.1.1 Medtr7g118350.1 0.14510 1.675 0.08662
-2  AT1G01050.2.1 Medtr8g024050.1 0.08582 1.318 0.06513
-3  AT1G01060.4.1 Medtr7g118330.2 0.33950 1.605 0.21150
-4  AT1G01080.1.1 Medtr7g118230.1 0.49390    NA      NA
-5  AT1G01090.1.1 Medtr8g024310.1 0.12610 1.752 0.07198
-6  AT1G01110.2.1 Medtr8g024540.1 0.26390    NA      NA
-7  AT1G01120.1.1 Medtr7g118170.1 0.17790 2.074 0.08577
-8  AT1G01140.1.1 Medtr8g024600.1 0.15170 1.523 0.09955
-9  AT1G01170.2.1 Medtr7g091770.2 0.21350 1.760 0.12130
-10 AT1G01180.1.1 Medtr8g024680.1 0.25220 1.820 0.13860
- ... with 12,853 more rows
+$Athaliana_vs_Mtruncatula
+# A tibble: 14,287 x 15
+   query_id subject_id     dN    dS    dNdS perc_identity alig_length
+   <chr>    <chr>       <dbl> <dbl>   <dbl>         <dbl>       <dbl>
+ 1 AT1G010… Medtr7g08… 0.378   1.93  0.196           51.2         240
+ 2 AT1G010… Medtr7g11… 0.145   1.67  0.0868          74.2        1909
+ 3 AT1G010… Medtr8g02… 0.0858  1.32  0.0651          88.3         213
+ 4 AT1G010… Medtr7g11… 0.340   1.60  0.212           43.8         493
+ 5 AT1G010… Medtr7g11… 0.494  NA    NA               44.7         197
+ 6 AT1G010… Medtr8g02… 0.126   1.75  0.0720          82           400
+ 7 AT1G011… Medtr8g02… 0.264  NA    NA               55.3         580
+ 8 AT1G011… Medtr7g11… 0.178   2.07  0.0858          73.0         523
+ 9 AT1G011… Medtr8g02… 0.143   2.39  0.0597          74.6         437
+10 AT1G011… Medtr7g09… 0.214   1.76  0.121           68.4          76
+# … with 14,277 more rows, and 8 more variables: mismatches <dbl>,
+#   gap_openings <dbl>, q_start <dbl>, q_end <dbl>, s_start <dbl>,
+#   s_end <dbl>, evalue <dbl>, bit_score <dbl>
 
-$Ath_vs_Thassl
- A tibble: 15,791 × 5
-        query_id                                  subject_id      dN     dS    dNdS
-           <chr>                                       <chr>   <dbl>  <dbl>   <dbl>
-1  AT1G01020.1.1 lcl|NW_010965696.1_cds_XP_010542814.1_17939 0.23950 0.9072 0.26400
-2  AT1G01030.1.1 lcl|NW_010967707.1_cds_XP_010556651.1_30297 0.14160 1.1620 0.12190
-3  AT1G01040.1.1 lcl|NW_010967707.1_cds_XP_010556639.1_30293 0.08732 0.7440 0.11740
-4  AT1G01040.2.1 lcl|NW_010967707.1_cds_XP_010556638.1_30296 0.08784 0.7449 0.11790
-5  AT1G01050.2.1 lcl|NW_010965696.1_cds_XP_010542812.1_17937 0.03153 0.7757 0.04065
-6  AT1G01060.6.1 lcl|NW_010967707.1_cds_XP_010556647.1_30291 0.23920 0.8518 0.28080
-7  AT1G01060.8.1 lcl|NW_010967707.1_cds_XP_010556646.1_30289 0.20380 0.8670 0.23500
-8  AT1G01070.1.1 lcl|NW_010969548.1_cds_XP_010522883.1_36546 0.22380 1.3040 0.17160
-9  AT1G01080.1.1 lcl|NW_010967707.1_cds_XP_010556629.1_30271 0.15890 0.8563 0.18550
-10 AT1G01090.1.1 lcl|NW_010967707.1_cds_XP_010556630.1_30270 0.07587 1.0110 0.07507
- ... with 15,781 more rows
+$Athaliana_vs_Thassleriana
+# A tibble: 17,249 x 15
+   query_id subject_id     dN    dS   dNdS perc_identity alig_length mismatches
+   <chr>    <chr>       <dbl> <dbl>  <dbl>         <dbl>       <dbl>      <dbl>
+ 1 AT1G010… XM_010544… 0.240  0.907 0.264           67.0         224         71
+ 2 AT1G010… XM_010558… 0.142  1.16  0.122           60.9         391         79
+ 3 AT1G010… XM_010558… 0.0873 0.744 0.117           81.6        1954        281
+ 4 AT1G010… XM_010544… 0.0315 0.776 0.0406          93.5         215         12
+ 5 AT1G010… XM_010558… 0.204  0.867 0.235           57.1         750        196
+ 6 AT1G010… XM_010558… 0.239  0.852 0.281           52.4         750        220
+ 7 AT1G010… XM_010524… 0.224  1.30  0.172           65.2         368        118
+ 8 AT1G010… XM_010558… 0.159  0.856 0.186           70.5         295         75
+ 9 AT1G010… XM_010524… 0.0673 0.831 0.0810          85.9         432         55
+10 AT1G011… XM_010558… 0.153  1.38  0.111           68.8         382         82
+# … with 17,239 more rows, and 7 more variables: gap_openings <dbl>,
+#   q_start <dbl>, q_end <dbl>, s_start <dbl>, s_end <dbl>, evalue <dbl>,
+#   bit_score <dbl>
 ```
 
 Individual pairwise dNdS files can then be selected by typing:
@@ -213,24 +219,26 @@ Individual pairwise dNdS files can then be selected by typing:
 ```r
 # example: how to select individual dNdS maps
 # here: dNdS map for A thaliana vs E salsugineum
-map.list$Ath_vs_Esals
+Ath_pairwise_dNdS_maps$Athaliana_vs_Alyrata
 ```
 
 ```
- A tibble: 19,982 × 5
-        query_id      subject_id       dN     dS    dNdS
-           <chr>           <chr>    <dbl>  <dbl>   <dbl>
-1  AT1G01010.1.1 Thhalv10007665m 0.181900 0.3618 0.50280
-2  AT1G01020.1.1 Thhalv10008618m 0.101300 0.2806 0.36100
-3  AT1G01030.1.1 Thhalv10008068m 0.025890 0.2531 0.10230
-4  AT1G01040.1.1 Thhalv10006531m 0.033420 0.3129 0.10680
-5  AT1G01050.2.1 Thhalv10008767m 0.007183 0.3848 0.01867
-6  AT1G01060.8.1 Thhalv10007029m 0.096500 0.2749 0.35100
-7  AT1G01070.1.1 Thhalv10009501m 0.085800 0.3232 0.26550
-8  AT1G01080.1.1 Thhalv10008355m 0.063880 0.2909 0.21960
-9  AT1G01090.1.1 Thhalv10007695m 0.022560 0.4576 0.04930
-10 AT1G01110.2.1 Thhalv10007299m 0.060020 0.3247 0.18480
- ... with 19,972 more rows
+ # A tibble: 23,844 x 15
+   query_id subject_id      dN    dS   dNdS perc_identity alig_length
+   <chr>    <chr>        <dbl> <dbl>  <dbl>         <dbl>       <dbl>
+ 1 AT1G010… AL1G11530… 0.106   0.254 0.420           74.0         469
+ 2 AT1G010… AL1G11510… 0.0402  0.104 0.388           91.1         246
+ 3 AT1G010… AL1G11500… 0.0565  0.210 0.270           96.3         298
+ 4 AT1G010… AL1G11480… 0.0134  0.117 0.115           96.2        1915
+ 5 AT1G010… AL1G11470… 0       0.175 0              100           213
+ 6 AT1G010… AL1G11460… 0.0444  0.117 0.379           88.5         654
+ 7 AT1G010… AL1G11450… 0.0183  0.106 0.173           95.1         366
+ 8 AT1G010… AL1G11440… 0.0340  0.110 0.310           82.9         327
+ 9 AT1G010… AL1G11430… 0.00910 0.218 0.0417          96.8         434
+10 AT1G011… AL1G11410… 0.0325  0.122 0.266           93.6         528
+# … with 23,834 more rows, and 8 more variables: mismatches <dbl>,
+#   gap_openings <dbl>, q_start <dbl>, q_end <dbl>, s_start <dbl>,
+#   s_end <dbl>, evalue <dbl>, bit_score <dbl>
 ```
 
 Analogous all other individual dNdS maps can be selected by typing `map.list$Ath_vs_Alyr`,`map.list$Ath_vs_Bdist`, `map.list$Ath_vs_Crub`, `map.list$Ath_vs_Thassl`, etc.
