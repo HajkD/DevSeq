@@ -14,36 +14,7 @@
 
 ## Resource Retrieval
 
-### Reference Genome and CDS Retrieval
-
-The reference genomes used for all analyses were obtained from diverse databases:
-
-
-
-```r
-# install.packages("biomartr")
-
-# download CDS for Arabidopsis thaliana
-biomartr::getCDS(db = "ensemblgenomes",
-                 organism = "Arabidopsis thaliana",
-                 path = "data/CDS")
-                 
-# download Proteome for Arabidopsis thaliana
-biomartr::getProteome(db = "ensemblgenomes",
-                      organism = "Arabidopsis thaliana",
-                      path = "data/Proteome")
-                 
-# download CDS for Tarenaya hassleriana
-biomartr::getCDS(db = "refseq",
-                 organism = "Tarenaya hassleriana",
-                 path = "data/CDS/subject_species")
-# download Proteome for Tarenaya hassleriana
-biomartr::getProteome(db = "refseq",
-                      organism = "Tarenaya hassleriana",
-                      path = "data/Proteome")
-```
-
-The CDS and Proteome files for `A. lyrata`, `B. distachyon`, `C. rubella`, `E. salsugineum`, `M. truncatula` have been downloaded from [Phytozome V11](https://phytozome.jgi.doe.gov/pz/portal.html) on 17 Nov 2016. The CDS sequences for `Picea abies` were downloaded from ftp://plantgenie.org/Data/ConGenIE/Picea_abies/v1.0/FASTA/GenePrediction/Pabies1.0-all-cds.fna.gz on 26 Mar 2018.
+### Reference Genomes, CDS, lncRNAs, etc
 
 ### Software Retrieval
 
@@ -69,194 +40,183 @@ via the [biomartr](https://github.com/HajkD/biomartr) package. First, users need
 
 ```r
 # compute dN/dS table of A. thaliana vs. all other species
-orthologr::map_generator(
+orthologr::map_generator_dnds(
                query_file      = "data/DevSeq_CDS/Query_files/Athaliana.fa",
-               subjects.folder = "data/CDS/Athaliana_subject_files",
+               subjects_folder = "data/DevSeq_CDS/Athaliana_subject_files",
                eval            = "1E-5", # e value threshold for ortholog detection
                ortho_detection = "RBH", # use conservative method: BLAST best reciprocal hit
                aa_aln_type      = "pairwise",
                aa_aln_tool      = "NW", # use Needleman-Wunsch Algorithm for global codon alignment
                codon_aln_tool   = "pal2nal", 
-               dnds_est.method  = "Comeron", # use robust dN/dS estimation (Comeron's method)
-               output.folder    = "data/DevSeq_dNdS_maps/OrthologR/DevSeq_Plants/Query_Athaliana/",
+               dnds_est_method  = "Comeron", # use robust dN/dS estimation (Comeron's method)
+               min_qry_coverage_hsp = 50, # min query coverage of hsp >= 50% of initial query locus
+               min_qry_perc_identity = 30, # min percent identity of hsp >= 30% to initial query locus
+               output_folder    = "data/DevSeq_dNdS_maps/OrthologR/DevSeq_Plants/Query_Athaliana/",
                comp_cores       = 12
                )
+               
+               
+# retrieve pairwise ortho tables and detect for each gene locus exactly one 
+# representative splice variant that maximizes the sequence homology
+# between the two orthologous loci
+devseq_ortho_tables <- orthologr::generate_ortholog_tables_all(
+    dNdS_folder = "data/DevSeq_dNdS_maps/OrthologR/DevSeq_Plants/Query_Athaliana",
+    annotation_file_query = "data/DevSeq_GTF/Query_files/Athaliana.gtf",
+    annotation_folder_subject = "data/DevSeq_GTF/Athaliana_subject_files",
+    output_folder = "data/DevSeq_orthologs/OrthologR/DevSeq_Plants/",
+    output_type = "gene_locus",
+    format = c("gtf", "gtf")
+)
 
-```
 
-Import all dNdS maps:
-
-```r
-# Import all A thaliana dNdS maps and store each pairwise comparison as list element
-Ath_pairwise_dNdS_maps <- lapply(list.files("data/DevSeq_dNdS_maps/OrthologR/DevSeq_Plants/Query_Athaliana/"), function(map) {
-    
-    readr::read_delim(
-        file.path("data/DevSeq_dNdS_maps/OrthologR/DevSeq_Plants/Query_Athaliana/", map),
-        col_names = TRUE,
-        delim = ";"
+# retrieve the core set of orthologs in tidy data format
+devseq_core_orthologs <-
+    retrieve_core_orthologs(
+        ortho_tables = devseq_ortho_tables,
+        species_order = c(
+            "Alyrata",
+            "Crubella",
+            "Esalsugineum",
+            "Thassleriana",
+            "Mtruncatula",
+            "Bdistachyon"
+        )
     )
-})
 
-# rename list elements 
-names(Ath_pairwise_dNdS_maps) <- paste0("Athaliana_vs_", c("Alyrata", "Bdistachyon","Crubella", "Esalsugineum", "Mtruncatula", "Thassleriana"))
-
-# look at import
-Ath_pairwise_dNdS_maps
+# look at the results
+devseq_core_orthologs
 ```
 
-```
-$Athaliana_vs_Alyrata
-# A tibble: 23,844 x 15
-   query_id subject_id      dN    dS   dNdS perc_identity alig_length
-   <chr>    <chr>        <dbl> <dbl>  <dbl>         <dbl>       <dbl>
- 1 AT1G010… AL1G11530… 0.106   0.254 0.420           74.0         469
- 2 AT1G010… AL1G11510… 0.0402  0.104 0.388           91.1         246
- 3 AT1G010… AL1G11500… 0.0565  0.210 0.270           96.3         298
- 4 AT1G010… AL1G11480… 0.0134  0.117 0.115           96.2        1915
- 5 AT1G010… AL1G11470… 0       0.175 0              100           213
- 6 AT1G010… AL1G11460… 0.0444  0.117 0.379           88.5         654
- 7 AT1G010… AL1G11450… 0.0183  0.106 0.173           95.1         366
- 8 AT1G010… AL1G11440… 0.0340  0.110 0.310           82.9         327
- 9 AT1G010… AL1G11430… 0.00910 0.218 0.0417          96.8         434
-10 AT1G011… AL1G11410… 0.0325  0.122 0.266           93.6         528
-# … with 23,834 more rows, and 8 more variables: mismatches <dbl>,
-#   gap_openings <dbl>, q_start <dbl>, q_end <dbl>, s_start <dbl>,
-#   s_end <dbl>, evalue <dbl>, bit_score <dbl>
 
-$Athaliana_vs_Bdistachyon
-# A tibble: 12,148 x 15
-   query_id subject_id    dN    dS    dNdS perc_identity alig_length mismatches
-   <chr>    <chr>      <dbl> <dbl>   <dbl>         <dbl>       <dbl>      <dbl>
- 1 AT1G010… Bradi3g16… 0.549 NA    NA               38.0         397        198
- 2 AT1G010… Bradi3g13… 0.457 NA    NA               53.4         189         87
- 3 AT1G010… Bradi5g01… 0.156  1.98  0.0790          86.7         354         44
- 4 AT1G011… Bradi1g68… 0.297 NA    NA               60           550        186
- 5 AT1G011… Bradi1g76… 0.198  1.92  0.103           72.6         445        115
- 6 AT1G011… Bradi1g50… 0.197  1.20  0.165           72.6          73         20
- 7 AT1G011… Bradi4g35… 0.474 NA    NA               56.5         248        101
- 8 AT1G012… Bradi1g35… 0.235  1.52  0.155           65.4         214         63
- 9 AT1G012… Bradi1g77… 0.255  2.77  0.0919          63.2        1060        365
-10 AT1G012… Bradi4g35… 0.263 NA    NA               66.3         249         77
-# … with 12,138 more rows, and 7 more variables: gap_openings <dbl>,
-#   q_start <dbl>, q_end <dbl>, s_start <dbl>, s_end <dbl>, evalue <dbl>,
-#   bit_score <dbl>
 
-$Athaliana_vs_Crubella
-# A tibble: 22,721 x 15
-   query_id subject_id     dN    dS   dNdS perc_identity alig_length mismatches
-   <chr>    <chr>       <dbl> <dbl>  <dbl>         <dbl>       <dbl>      <dbl>
- 1 AT1G010… Carubv100… 0.112  0.276 0.405           68.5         482         88
- 2 AT1G010… Carubv100… 0.0826 0.181 0.456           84.0         244         38
- 3 AT1G010… Carubv100… 0.0282 0.225 0.126           93.9         361         19
- 4 AT1G010… Carubv100… 0.0232 0.236 0.0980          94.5        1915         94
- 5 AT1G010… Carubv100… 0.0106 0.239 0.0445          97.7         213          5
- 6 AT1G010… Carubv100… 0.0540 0.202 0.267           87.9         651         68
- 7 AT1G010… Carubv100… 0.0880 0.316 0.278           82.2         371         60
- 8 AT1G010… Carubv100… 0.0703 0.213 0.329           85.1         295         35
- 9 AT1G010… Carubv100… 0.0158 0.346 0.0457          95.2         433         15
-10 AT1G011… Carubv100… 0.0554 0.227 0.244           84.9         543         63
-# … with 22,711 more rows, and 7 more variables: gap_openings <dbl>,
-#   q_start <dbl>, q_end <dbl>, s_start <dbl>, s_end <dbl>, evalue <dbl>,
-#   bit_score <dbl>
+### Generate ortholog tables by gene locus 
 
-$Athaliana_vs_Esalsugineum
-# A tibble: 22,831 x 15
-   query_id subject_id      dN    dS   dNdS perc_identity alig_length
-   <chr>    <chr>        <dbl> <dbl>  <dbl>         <dbl>       <dbl>
- 1 AT1G010… Thhalv100… 0.182   0.362 0.503           64.9         445
- 2 AT1G010… Thhalv100… 0.101   0.281 0.361           81.1         244
- 3 AT1G010… Thhalv100… 0.0259  0.253 0.102           91.9         360
- 4 AT1G010… Thhalv100… 0.0334  0.314 0.106           92.9        1923
- 5 AT1G010… NewID_000… 0.00718 0.385 0.0187          98.6         213
- 6 AT1G010… NewID_000… 0.0965  0.275 0.351           77.6         664
- 7 AT1G010… NewID_000… 0.0855  0.323 0.265           84.2         367
- 8 AT1G010… NewID_000… 0.0639  0.291 0.220           86.9         297
- 9 AT1G010… NewID_000… 0.0226  0.458 0.0493          94.2         432
-10 AT1G011… Thhalv100… 0.0600  0.325 0.185           84.3         547
-# … with 22,821 more rows, and 8 more variables: mismatches <dbl>,
-#   gap_openings <dbl>, q_start <dbl>, q_end <dbl>, s_start <dbl>,
-#   s_end <dbl>, evalue <dbl>, bit_score <dbl>
-
-$Athaliana_vs_Mtruncatula
-# A tibble: 14,287 x 15
-   query_id subject_id     dN    dS    dNdS perc_identity alig_length
-   <chr>    <chr>       <dbl> <dbl>   <dbl>         <dbl>       <dbl>
- 1 AT1G010… Medtr7g08… 0.378   1.93  0.196           51.2         240
- 2 AT1G010… Medtr7g11… 0.145   1.67  0.0868          74.2        1909
- 3 AT1G010… Medtr8g02… 0.0858  1.32  0.0651          88.3         213
- 4 AT1G010… Medtr7g11… 0.340   1.60  0.212           43.8         493
- 5 AT1G010… Medtr7g11… 0.494  NA    NA               44.7         197
- 6 AT1G010… Medtr8g02… 0.126   1.75  0.0720          82           400
- 7 AT1G011… Medtr8g02… 0.264  NA    NA               55.3         580
- 8 AT1G011… Medtr7g11… 0.178   2.07  0.0858          73.0         523
- 9 AT1G011… Medtr8g02… 0.143   2.39  0.0597          74.6         437
-10 AT1G011… Medtr7g09… 0.214   1.76  0.121           68.4          76
-# … with 14,277 more rows, and 8 more variables: mismatches <dbl>,
-#   gap_openings <dbl>, q_start <dbl>, q_end <dbl>, s_start <dbl>,
-#   s_end <dbl>, evalue <dbl>, bit_score <dbl>
-
-$Athaliana_vs_Thassleriana
-# A tibble: 17,249 x 15
-   query_id subject_id     dN    dS   dNdS perc_identity alig_length mismatches
-   <chr>    <chr>       <dbl> <dbl>  <dbl>         <dbl>       <dbl>      <dbl>
- 1 AT1G010… XM_010544… 0.240  0.907 0.264           67.0         224         71
- 2 AT1G010… XM_010558… 0.142  1.16  0.122           60.9         391         79
- 3 AT1G010… XM_010558… 0.0873 0.744 0.117           81.6        1954        281
- 4 AT1G010… XM_010544… 0.0315 0.776 0.0406          93.5         215         12
- 5 AT1G010… XM_010558… 0.204  0.867 0.235           57.1         750        196
- 6 AT1G010… XM_010558… 0.239  0.852 0.281           52.4         750        220
- 7 AT1G010… XM_010524… 0.224  1.30  0.172           65.2         368        118
- 8 AT1G010… XM_010558… 0.159  0.856 0.186           70.5         295         75
- 9 AT1G010… XM_010524… 0.0673 0.831 0.0810          85.9         432         55
-10 AT1G011… XM_010558… 0.153  1.38  0.111           68.8         382         82
-# … with 17,239 more rows, and 7 more variables: gap_openings <dbl>,
-#   q_start <dbl>, q_end <dbl>, s_start <dbl>, s_end <dbl>, evalue <dbl>,
-#   bit_score <dbl>
-```
-
-Individual pairwise dNdS files can then be selected by typing:
+The following procedures determine the best splice variant per gene locus
+that maximizes the sequence homology between the query locus and the subject locus.
+The respective splice variant in the query and subject will then be used to represent the 
+homology relationship between the homologous gene loci.
 
 ```r
-# example: how to select individual dNdS maps
-# here: dNdS map for A thaliana vs E salsugineum
-Ath_pairwise_dNdS_maps$Athaliana_vs_Alyrata
+### QUERY: A thaliana
+
+# Ath vs Aly
+orthologr::generate_ortholog_tables(
+  dNdS_file = "data/DevSeq_dNdS_maps/OrthologR/DevSeq_Plants/Query_Athaliana/map_q=Athaliana.fa_s=Alyrata.fa_orthodetec=RBH_eval=1E-5.csv",
+  annotation_file_query = "data/DevSeq_GTF/Athaliana.gtf",
+  annotation_file_subject = "data/DevSeq_GTF/Alyrata.gtf",
+  output_folder = "data/DevSeq_orthologs/OrthologR/DevSeq_Plants/Query_Athaliana",
+  format = c("gtf", "gtf")
+)
+
+# Ath vs Bdist
+orthologr::generate_ortholog_tables(
+  dNdS_file = "data/DevSeq_dNdS_maps/OrthologR/DevSeq_Plants/Query_Athaliana/map_q=Athaliana.fa_s=Bdistachyon.fa_orthodetec=RBH_eval=1E-5.csv,
+  annotation_file_query = "data/DevSeq_GTF/Athaliana.gtf",
+  annotation_file_subject = "data/DevSeq_GTF/Bdistachyon.gtf",
+  output_folder = "data/DevSeq_orthologs/OrthologR/DevSeq_Plants/Query_Athaliana",
+  format = c("gtf", "gtf")
+)
+
+# Ath vs Crubella
+orthologr::generate_ortholog_tables(
+  dNdS_file = "data/DevSeq_dNdS_maps/OrthologR/DevSeq_Plants/Query_Athaliana/map_q=Athaliana.fa_s=Crubella.fa_orthodetec=RBH_eval=1E-5.csv",
+  annotation_file_query = "data/DevSeq_GTF/Athaliana.gtf",
+  annotation_file_subject = "data/DevSeq_GTF/Crubella.gtf",
+  output_folder = "data/DevSeq_orthologs/OrthologR/DevSeq_Plants/Query_Athaliana",
+  format = c("gtf", "gtf")
+)
+
+
+# Ath vs Esalsugineum
+orthologr::generate_ortholog_tables(
+  dNdS_file = "data/DevSeq_dNdS_maps/OrthologR/DevSeq_Plants/Query_Athaliana/map_q=Athaliana.fa_s=Esalsugineum.fa_orthodetec=RBH_eval=1E-5.csv",
+  annotation_file_query = "data/DevSeq_GTF/Athaliana.gtf",
+  annotation_file_subject = "data/DevSeq_GTF/Esalsugineum.gtf",
+  output_folder = "data/DevSeq_orthologs/OrthologR/DevSeq_Plants/Query_Athaliana",
+  format = c("gtf", "gtf")
+)
+
+
+# Ath vs Mtruncatula
+orthologr::generate_ortholog_tables(
+  dNdS_file = "data/DevSeq_dNdS_maps/OrthologR/DevSeq_Plants/Query_Athaliana/map_q=Athaliana.fa_s=Mtruncatula.fa_orthodetec=RBH_eval=1E-5.csv",
+  annotation_file_query = "data/DevSeq_GTF/Athaliana.gtf",
+  annotation_file_subject = "data/DevSeq_GTF/Mtruncatula.gtf",
+  output_folder = "data/DevSeq_orthologs/OrthologR/DevSeq_Plants/Query_Athaliana",
+  format = c("gtf", "gtf")
+)
+
+# Ath vs Thassleriana
+orthologr::generate_ortholog_tables(
+  dNdS_file = "data/DevSeq_dNdS_maps/OrthologR/DevSeq_Plants/Query_Athaliana/map_q=Athaliana.fa_s=Thassleriana.fa_orthodetec=RBH_eval=1E-5.csv",
+  annotation_file_query = "data/DevSeq_GTF/Athaliana.gtf",
+  annotation_file_subject = "data/DevSeq_GTF/Thassleriana.gtf",
+  output_folder = "data/DevSeq_orthologs/OrthologR/DevSeq_Plants/Query_Athaliana",
+  format = c("gtf", "gtf")
+)
 ```
 
-```
- # A tibble: 23,844 x 15
-   query_id subject_id      dN    dS   dNdS perc_identity alig_length
-   <chr>    <chr>        <dbl> <dbl>  <dbl>         <dbl>       <dbl>
- 1 AT1G010… AL1G11530… 0.106   0.254 0.420           74.0         469
- 2 AT1G010… AL1G11510… 0.0402  0.104 0.388           91.1         246
- 3 AT1G010… AL1G11500… 0.0565  0.210 0.270           96.3         298
- 4 AT1G010… AL1G11480… 0.0134  0.117 0.115           96.2        1915
- 5 AT1G010… AL1G11470… 0       0.175 0              100           213
- 6 AT1G010… AL1G11460… 0.0444  0.117 0.379           88.5         654
- 7 AT1G010… AL1G11450… 0.0183  0.106 0.173           95.1         366
- 8 AT1G010… AL1G11440… 0.0340  0.110 0.310           82.9         327
- 9 AT1G010… AL1G11430… 0.00910 0.218 0.0417          96.8         434
-10 AT1G011… AL1G11410… 0.0325  0.122 0.266           93.6         528
-# … with 23,834 more rows, and 8 more variables: mismatches <dbl>,
-#   gap_openings <dbl>, q_start <dbl>, q_end <dbl>, s_start <dbl>,
-#   s_end <dbl>, evalue <dbl>, bit_score <dbl>
-```
 
-Analogous all other individual dNdS maps can be selected by typing `map.list$Ath_vs_Alyr`,`map.list$Ath_vs_Bdist`, `map.list$Ath_vs_Crub`, `map.list$Ath_vs_Thassl`, etc.
+
+
+```r
+
+orthologs_by_gene_path <-
+  file.path(
+    "orthologs_by_gene_locus_qry_athaliana",
+    list.files("orthologs_by_gene_locus_qry_athaliana/")
+  )
+
+# import and generate final ortholog table for A thaliana
+ortholog_tbl_athaliana <-
+  dplyr::bind_rows(sapply(orthologs_by_gene_path, function(x) {
+    list(readr::read_delim(
+      x,
+      delim = ";",
+      col_names = TRUE)
+  }))
+
+
+ortholog_tbl_athaliana <- dplyr::mutate(ortholog_tbl_athaliana, q_len = q_end - q_start + 1, scope = 1 - (abs(q_len - alig_length) / q_len))
+
+# number of orthologs found in other species
+ortholog_tbl_athaliana_pairwise <- dplyr::summarize(dplyr::group_by(ortholog_tbl_athaliana, subject_species),
+                 n_orthologs = n())
+
+ortholog_tbl_athaliana_pairwise$subject_species <- factor(
+  ortholog_tbl_athaliana_pairwise$subject_species,
+  levels = c(
+    "Alyrata",
+    "Crubella",
+    "Esalsugineum",
+    "Thassleriana",
+    "Mtruncatula",
+    "Bdistachyon"
+  )
+)
+ortholog_tbl_athaliana_core <-
+  dplyr::do(dplyr::group_by(ortholog_tbl_athaliana, query_id),
+            retrieve_core_genes(.))
+
+ortholog_tbl_athaliana_core <-
+  dplyr::filter(ortholog_tbl_athaliana_core, !is.na(query_id))
+
+```
 
 ### Detection of all `A. thaliana` genes that have intersecting orthologs with all other species
 
 ```r
 # first rename colnames of individual dNdS maps
-for (i in seq_along(map.list)) {
-   colnames(map.list[[i]])[2:5] <- paste0(names(map.list)[i], c("_subject_id","_dN", "_dS", "_dNdS"))
+for (i in seq_along(Ath_pairwise_dNdS_maps)) {
+   colnames(Ath_pairwise_dNdS_maps[[i]])[2:5] <- paste0(names(Ath_pairwise_dNdS_maps)[i], c("_subject_id","_dN", "_dS", "_dNdS"))
 }
 
 # combine all geneids into one file
-all.maps <- dplyr::bind_rows(lapply(map.list, function(x) tibble::as_tibble(unique(x$query_id))))
+all.maps <- dplyr::bind_rows(lapply(Ath_pairwise_dNdS_maps, function(x) tibble::as_tibble(unique(x$query_id))))
 colnames(all.maps) <- "query_id"
 
 # detect genes that have orthologs in all other species
-length(names(table(all.maps$query_id))[which(table(all.maps$query_id) == length(map.list))])
+length(names(table(all.maps$query_id))[which(table(all.maps$query_id) == length(Ath_pairwise_dNdS_maps))])
 ```
 
 ```
@@ -428,18 +388,28 @@ orthologr::map.generator(
 
 ### Orthogroup Inference with Orthofinder2
 
-
+#### Running Orthofinder2 for DevSeq Species
 ```r
-orthologr::translate_cds_to_protein_all()
+# translate all CDS sequences into protein sequences and check
+# for all CDS sequences whether or not they are divisible by 3
+orthologr::translate_cds_to_protein_all(input_folder = "data/DevSeq_CDS/Query_files", 
+                                        output_folder = "data/DevSeq_Proteins",
+                                        delete_corrupt_cds = FALSE)
 
-orthologr::retrieve_longest_isoforms_all(proteome_folder = "devseq_orthofinder_protein_2019_06_27", 
-                           annotation_folder = "devseq_orthologr_gtf_2019_06_19", 
-                           output_folder = "devseq_orthofinder_protein_longest_2019_06_27",
+# for each translated protein file retrieve the longest isoform per gene locus  
+orthologr::retrieve_longest_isoforms_all(
+                           proteome_folder = "data/DevSeq_Proteins", 
+                           annotation_folder = "data/DevSeq_GTF/Query_files", 
+                           output_folder = "data/DevSeq_Proteins_longest_isoforms",
                            annotation_format = "gtf")
 
-
-orthologr::orthofinder2(proteome_folder = "devseq_orthofinder_protein_longest_2019_06_27", comp_cores = 4)
+# run orthofinder2 on protein sequences with longest splice variants 
+orthologr::orthofinder2(proteome_folder = "data/DevSeq_Proteins_longest_isoforms", comp_cores = 4)
 ```
+
+#### Running Orthofinder2 for Brawand Species
+
+
 
 ## Install `DevSeqR` package
 
