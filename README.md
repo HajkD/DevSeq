@@ -90,6 +90,20 @@ readr::write_tsv(devseq_core_orthologs, "devseq_core_orthologs_representative_sp
 
 # look at the results
 devseq_core_orthologs
+
+
+# test that core set only includes unique query_IDs and subject_IDs
+dplyr::summarize(
+  dplyr::group_by(devseq_core_orthologs, subject_species),
+  n_unique_query_gene_locus_id = length(unique(query_gene_locus_id)),
+  n_non_unique_query_gene_locus_id = length((query_gene_locus_id)),
+  n_unique_query_id = length(unique(query_id)),
+  n_non_unique_query_id = length((query_id)),
+  n_unique_subject_gene_locus_id = length(unique(subject_gene_locus_id)),
+  n_non_unique_subject_gene_locus_id = length((subject_gene_locus_id)),
+  n_unique_subject_id = length(unique(subject_id)),
+  n_non_unique_subject_id = length((subject_id))
+)
 ```
 
 Visualizing the inferred orthologs
@@ -300,6 +314,19 @@ readr::write_tsv(brawand_core_orthologs, "brawand_core_orthologs_representative_
 
 # look at the results
 brawand_core_orthologs
+
+# test that core set only includes unique query_IDs and subject_IDs
+dplyr::summarize(
+  dplyr::group_by(brawand_core_orthologs, subject_species),
+  n_unique_query_gene_locus_id = length(unique(query_gene_locus_id)),
+  n_non_unique_query_gene_locus_id = length((query_gene_locus_id)),
+  n_unique_query_id = length(unique(query_id)),
+  n_non_unique_query_id = length((query_id)),
+  n_unique_subject_gene_locus_id = length(unique(subject_gene_locus_id)),
+  n_non_unique_subject_gene_locus_id = length((subject_gene_locus_id)),
+  n_unique_subject_id = length(unique(subject_id)),
+  n_non_unique_subject_id = length((subject_id))
+)
 ```
 ### Orthogroup Inference with Orthofinder2
 
@@ -466,67 +493,184 @@ orthologr::orthofinder2(proteome_folder = "../DevSeq_data/Brawand_Proteins_longe
 We used `*_No_TE_genes_tpm_sample_names.csv` files.
 
 ```r
+### Use E-value threshold 1E-2
 # gene loci lncRNAs
-lnc_map_list <- orthologr::map_generator_lnc(
+lnc_map_1e2 <- orthologr::map_generator_lnc(
   query_file      = "../DevSeq_data/DevSeq_lncRNAs/lncRNA_gene_loci/Query_files/Athaliana.fa",
   subjects_folder = "../DevSeq_data/DevSeq_lncRNAs/lncRNA_gene_loci/Athaliana_subject_files/",
-  eval            = "1E-5", # e value threshold for ortholog detection
+  eval            = "1E-2", # e value threshold for ortholog detection
   ortho_detection = "RBH", # use conservative method: BLAST best reciprocal hit
-  output_folder    = "../DevSeq_data/DevSeq_lncRNA_orthologs/lncRNA_gene_loci",
+  output_folder    = "../DevSeq_data/DevSeq_lncRNA_orthologs/lncRNA_gene_loci_1e2",
   min_qry_coverage_hsp = 30,
   min_qry_perc_identity = 30,
   comp_cores       = 4
 )
 
+devseq_core_orthologs_lnc_1e2 <-
+    orthologr::lnc_map_core_orthologs(
+        lnc_map = lnc_map_1e2,
+        species_order = c(
+            "Alyrata",
+            "Crubella",
+            "Esalsugineum",
+            "Thassleriana",
+            "Mtruncatula",
+            "Bdistachyon"
+        )
+    )
 
-lnc_map_list <- lapply(list.files("../DevSeq_data/DevSeq_lncRNA_orthologs/lncRNA_gene_loci"), function(map) {
-  
-  readr::read_delim(
-    file.path("../DevSeq_data/DevSeq_lncRNA_orthologs/lncRNA_gene_loci",map),
-    col_names = TRUE,
-    delim = ";")
-})
-
-
-# test that only unique query IDs are present in the output datasets
-dplyr::bind_rows(lapply(lnc_map_list, function(x) tibble::tibble(unique = length(unique(x$query_id)), non_unique = length(x$query_id))))
-
-devseq_species_lncRNAs <-
-  c("Alyrata",
-    "Bdistachyon",
-    "Crubella",
-    "Esalsugineum",
-    "Mtruncatula",
-    "Thassleriana")
-    
-    
-names(lnc_map_list) <- devseq_species_lncRNAs
-
-
-
-all_lncRNAs_df <- tibble::tibble(subject_species = c(
-                           "Alyrata",
-                           "Bdistachyon",
-                           "Crubella",
-                           "Esalsugineum",
-                           "Mtruncatula",
-                           "Thassleriana"), 
-               n_orthologs = unlist(dplyr::bind_rows(lapply(lnc_map_list, function(x) tibble::tibble(unique = length(unique(x$query_id)))))))
-
-all_lncRNAs_df$subject_species <- factor(
-  all_lncRNAs_df$subject_species,
-  levels = c(
+all_lncRNAs_df_1e2 <- orthologr::lnc_map_counts(lnc_map_1e2, species_order = c(
     "Alyrata",
     "Crubella",
     "Esalsugineum",
     "Thassleriana",
     "Mtruncatula",
     "Bdistachyon"
-  )
+  ))
+
+
+### Use E-value threshold 1E-3
+# gene loci lncRNAs
+lnc_map_1e3 <- orthologr::map_generator_lnc(
+  query_file      = "../DevSeq_data/DevSeq_lncRNAs/lncRNA_gene_loci/Query_files/Athaliana.fa",
+  subjects_folder = "../DevSeq_data/DevSeq_lncRNAs/lncRNA_gene_loci/Athaliana_subject_files/",
+  eval            = "1E-3", # e value threshold for ortholog detection
+  ortho_detection = "RBH", # use conservative method: BLAST best reciprocal hit
+  output_folder    = "../DevSeq_data/DevSeq_lncRNA_orthologs/lncRNA_gene_loci_1e3",
+  min_qry_coverage_hsp = 30,
+  min_qry_perc_identity = 30,
+  comp_cores       = 4
 )
 
-all_lncRNA_plot <-
-  metablastr::gg_pairwise_orthologs_line(all_lncRNAs_df, title = "Number of annotated lncRNAs")
+    
+all_lncRNAs_df_1e3 <- orthologr::lnc_map_counts(lnc_map_1e3, species_order = c(
+    "Alyrata",
+    "Crubella",
+    "Esalsugineum",
+    "Thassleriana",
+    "Mtruncatula",
+    "Bdistachyon"
+  ))
+
+### Use E-value threshold 1E-5
+# gene loci lncRNAs
+lnc_map_1e5 <- orthologr::map_generator_lnc(
+  query_file      = "../DevSeq_data/DevSeq_lncRNAs/lncRNA_gene_loci/Query_files/Athaliana.fa",
+  subjects_folder = "../DevSeq_data/DevSeq_lncRNAs/lncRNA_gene_loci/Athaliana_subject_files/",
+  eval            = "1E-5", # e value threshold for ortholog detection
+  ortho_detection = "RBH", # use conservative method: BLAST best reciprocal hit
+  output_folder    = "../DevSeq_data/DevSeq_lncRNA_orthologs/lncRNA_gene_loci_1e5",
+  min_qry_coverage_hsp = 30,
+  min_qry_perc_identity = 30,
+  comp_cores       = 4
+)
+
+
+all_lncRNAs_df_1e5 <- orthologr::lnc_map_counts(lnc_map_1e5, species_order = c(
+    "Alyrata",
+    "Crubella",
+    "Esalsugineum",
+    "Thassleriana",
+    "Mtruncatula",
+    "Bdistachyon"
+  ))
+  
+### Use E-value threshold 1E-7
+# gene loci lncRNAs
+lnc_map_1e7 <- orthologr::map_generator_lnc(
+  query_file      = "../DevSeq_data/DevSeq_lncRNAs/lncRNA_gene_loci/Query_files/Athaliana.fa",
+  subjects_folder = "../DevSeq_data/DevSeq_lncRNAs/lncRNA_gene_loci/Athaliana_subject_files/",
+  eval            = "1E-7", # e value threshold for ortholog detection
+  ortho_detection = "RBH", # use conservative method: BLAST best reciprocal hit
+  output_folder    = "../DevSeq_data/DevSeq_lncRNA_orthologs/lncRNA_gene_loci_1e7",
+  min_qry_coverage_hsp = 30,
+  min_qry_perc_identity = 30,
+  comp_cores       = 4
+)
+
+
+all_lncRNAs_df_1e7 <- orthologr::lnc_map_counts(lnc_map_1e7, species_order = c(
+    "Alyrata",
+    "Crubella",
+    "Esalsugineum",
+    "Thassleriana",
+    "Mtruncatula",
+    "Bdistachyon"
+  ))
+  
+
+### Use E-value threshold 1E-10
+# gene loci lncRNAs
+lnc_map_1e10 <- orthologr::map_generator_lnc(
+  query_file      = "../DevSeq_data/DevSeq_lncRNAs/lncRNA_gene_loci/Query_files/Athaliana.fa",
+  subjects_folder = "../DevSeq_data/DevSeq_lncRNAs/lncRNA_gene_loci/Athaliana_subject_files/",
+  eval            = "1E-10", # e value threshold for ortholog detection
+  ortho_detection = "RBH", # use conservative method: BLAST best reciprocal hit
+  output_folder    = "../DevSeq_data/DevSeq_lncRNA_orthologs/lncRNA_gene_loci_1e10",
+  min_qry_coverage_hsp = 30,
+  min_qry_perc_identity = 30,
+  comp_cores       = 4
+)
+
+
+all_lncRNAs_df_1e10 <- orthologr::lnc_map_counts(lnc_map_1e10, species_order = c(
+    "Alyrata",
+    "Crubella",
+    "Esalsugineum",
+    "Thassleriana",
+    "Mtruncatula",
+    "Bdistachyon"
+  ))
+  
+metablastr::gg_pairwise_orthologs_line(all_lncRNAs_df_1e2, title = "Number of annotated lncRNAs") + 
+ggplot2::geom_line(ggplot2::aes(x = subject_species,
+                                    y = n_orthologs,
+                                    group = 1), 
+                                    data = all_lncRNAs_df_1e3, size = 2)  + 
+                                    ggplot2::geom_point(size = 4, data = all_lncRNAs_df_1e3) +
+        ggplot2::geom_text(
+                ggplot2::aes(label = n_orthologs),
+                data = all_lncRNAs_df_1e3,
+                hjust = 0,
+                vjust = 2,
+                size = 3
+        )  + 
+ggplot2::geom_line(ggplot2::aes(x = subject_species,
+                                    y = n_orthologs,
+                                    group = 1), 
+                                    data = all_lncRNAs_df_1e5, size = 2)  + 
+                                    ggplot2::geom_point(size = 4, data = all_lncRNAs_df_1e5) +
+        ggplot2::geom_text(
+                ggplot2::aes(label = n_orthologs),
+                data = all_lncRNAs_df_1e5,
+                hjust = 0,
+                vjust = 2,
+                size = 3
+        )  + 
+ggplot2::geom_line(ggplot2::aes(x = subject_species,
+                                    y = n_orthologs,
+                                    group = 1), 
+                                    data = all_lncRNAs_df_1e7, size = 2)  + 
+                                    ggplot2::geom_point(size = 4, data = all_lncRNAs_df_1e7) +
+        ggplot2::geom_text(
+                ggplot2::aes(label = n_orthologs),
+                data = all_lncRNAs_df_1e7,
+                hjust = 0,
+                vjust = 2,
+                size = 3
+        )  + 
+ggplot2::geom_line(ggplot2::aes(x = subject_species,
+                                    y = n_orthologs,
+                                    group = 1), 
+                                    data = all_lncRNAs_df_1e10, size = 2)  + 
+                                    ggplot2::geom_point(size = 4, data = all_lncRNAs_df_1e10) +
+        ggplot2::geom_text(
+                ggplot2::aes(label = n_orthologs),
+                data = all_lncRNAs_df_1e10,
+                hjust = 0,
+                vjust = 2,
+                size = 3
+        ) 
 
 cowplot::save_plot(
   "all_lncRNA_plot.pdf",
