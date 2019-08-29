@@ -50,12 +50,11 @@ orthologr::map_generator_dnds(
                aa_aln_tool      = "NW", # use Needleman-Wunsch Algorithm for global codon alignment
                codon_aln_tool   = "pal2nal", 
                dnds_est_method  = "Comeron", # use robust dN/dS estimation (Comeron's method)
-               min_qry_coverage_hsp = 70, # min query coverage of hsp >= 70% of initial query locus
+               min_qry_coverage_hsp = 30, # min query coverage of hsp >= 30% of initial query locus
                min_qry_perc_identity = 30, # min percent identity of hsp >= 30% to initial query locus
                output_folder    = "../DevSeq_data/DevSeq_dNdS_maps/OrthologR/DevSeq_Plants/Query_Athaliana/",
                comp_cores       = 4
                )
-               
                
 # retrieve pairwise ortho tables and detect for each gene locus exactly one 
 # representative splice variant that maximizes the sequence homology
@@ -69,13 +68,81 @@ devseq_ortho_tables <- orthologr::generate_ortholog_tables_all(
     format = c("gtf", "gtf")
 )
 
-readr::write_tsv(devseq_ortho_tables, "devseq_ortho_tables_all_splice_variants.tsv", col_names = TRUE)
+# add scope column
+devseq_ortho_tables <- dplyr::mutate(devseq_ortho_tables, scope = 1 - (abs(q_len - alig_length) / q_len))
+```
+
+### Determining best homology threshold for orthologs
+
+```r
+p_all_ortho_thresholds_devseq <- orthologr::plot_diverse_homology_thresholds(devseq_ortho_tables, species_order = c(
+                        "Alyrata",
+                        "Crubella",
+                        "Esalsugineum",
+                        "Thassleriana",
+                        "Mtruncatula",
+                        "Bdistachyon"
+                ))
+
+cowplot::save_plot(
+    "p_all_ortho_thresholds_devseq.pdf",
+    p_all_ortho_thresholds_devseq,
+    base_height = 14,
+    base_width = 18
+)
+```
+
+
+### Gene locus vs splice variant threshold assessment for orthologs
+
+```r
+p_core_sets_multi <- orthologr::plot_diverse_homology_thresholds_core_orthologs(devseq_ortho_tables, species_order = c(
+                "Alyrata",
+                "Crubella",
+                "Esalsugineum",
+                "Thassleriana",
+                "Mtruncatula",
+                "Bdistachyon"
+            ), type = "gene_locus")
+
+cowplot::save_plot(
+    "p_core_sets_multi_devseq.pdf",
+    p_core_sets_multi,
+    base_height = 9,
+    base_width = 14
+)
+
+p_core_sets_multsplice_variant_devseq <- orthologr::plot_diverse_homology_thresholds_core_orthologs(devseq_ortho_tables, species_order = c(
+                "Alyrata",
+                "Crubella",
+                "Esalsugineum",
+                "Thassleriana",
+                "Mtruncatula",
+                "Bdistachyon"
+            ), type = "both")
+
+
+cowplot::save_plot(
+    "p_core_sets_multsplice_variant_devseq.pdf",
+    p_core_sets_multsplice_variant_devseq,
+    base_height = 9,
+    base_width = 14
+)
+```
+
+
+### Retrieve final DevSeq ortholog tables
+
+```r
+# use homology thresholds:
+devseq_ortho_tables_final <- dplyr::filter(devseq_ortho_tables,  qcovhsp >= 70, perc_identity >= 30, scope >= 0.7)
+readr::write_tsv(devseq_ortho_tables_final, "devseq_ortho_tables_all_splice_variants.tsv", col_names = TRUE)
 
 
 # retrieve the core set of orthologs in tidy data format
 devseq_core_orthologs <-
     orthologr::retrieve_core_orthologs(
-        ortho_tables = devseq_ortho_tables,
+        ortho_tables = devseq_ortho_tables_final,
         species_order = c(
             "Alyrata",
             "Crubella",
@@ -106,10 +173,10 @@ dplyr::summarize(
 )
 ```
 
-Visualizing the inferred orthologs
+### Visualizing the inferred orthologs
 
 ```r
-p_plot_pairwise_orthologs <- orthologr::plot_pairwise_orthologs(ortho_tables = devseq_ortho_tables,
+p_plot_pairwise_orthologs <- orthologr::plot_pairwise_orthologs(ortho_tables = devseq_ortho_tables_final,
         species_order = c(
             "Alyrata",
             "Crubella",
@@ -118,90 +185,125 @@ p_plot_pairwise_orthologs <- orthologr::plot_pairwise_orthologs(ortho_tables = d
             "Mtruncatula",
             "Bdistachyon"
         ), 
-        n_core_orthologs = 7175)
+        n_core_orthologs = length(unique(devseq_core_orthologs$query_gene_locus_id)))
 
 cowplot::save_plot(
-    "p_plot_pairwise_orthologs.pdf",
+    "p_plot_pairwise_orthologs_devseq.pdf",
     p_plot_pairwise_orthologs,
-    base_height = 9,
-    base_width = 14
+    base_height = 8,
+    base_width = 12
 )
-```
 
 
-```r
-# determining best set of thresholds for retaining orthologs
-qcovhsp_70_perc_identity_30 <- dplyr::summarize(dplyr::group_by(dplyr::filter(devseq_ortho_tables,  qcovhsp >= 70, perc_identity >= 30), subject_species),
-                                                n_orthologs = dplyr::n())
-qcovhsp_70_perc_identity_50 <- dplyr::summarize(dplyr::group_by(dplyr::filter(devseq_ortho_tables,  qcovhsp >= 70, perc_identity >= 50), subject_species),
-                                                n_orthologs = dplyr::n())
-qcovhsp_70_perc_identity_70 <- dplyr::summarize(dplyr::group_by(dplyr::filter(devseq_ortho_tables,  qcovhsp >= 70, perc_identity >= 70), subject_species),
-                                                n_orthologs = dplyr::n())
-qcovhsp_90_perc_identity_70 <- dplyr::summarize(dplyr::group_by(dplyr::filter(devseq_ortho_tables,  qcovhsp >= 90, perc_identity >= 70), subject_species),
-                                                n_orthologs = dplyr::n())
-qcovhsp_90_perc_identity_90 <- dplyr::summarize(dplyr::group_by(dplyr::filter(devseq_ortho_tables,  qcovhsp >= 90, perc_identity >= 90), subject_species),
-                                                n_orthologs = dplyr::n())
+p_dNdS_5_Athaliana <- metablastr::gg_species_dnds_blast_tbl(
+  dplyr::filter(devseq_ortho_tables_final, !is.na(dNdS), dNdS <= 5),
+  type = "dNdS",
+  order = c(
+    "Alyrata",
+            "Crubella",
+            "Esalsugineum",
+            "Thassleriana",
+            "Mtruncatula",
+            "Bdistachyon"
+  ), xlab = "dNdS"
+)
+
+p_alig_length <- metablastr::gg_species_feature_blast_tbl(devseq_ortho_tables_final,
+  type = "alig_length",
+  order = c(
+    "Alyrata",
+            "Crubella",
+            "Esalsugineum",
+            "Thassleriana",
+            "Mtruncatula",
+            "Bdistachyon"
+  ), xlab = "Alignment length in amino acids (BLAST hits)"
+)
 
 
-orthologr::plot_pairwise_orthologs(
-        ortho_tables = devseq_ortho_tables,
-        species_order = c(
-                "Alyrata",
-                "Crubella",
-                "Esalsugineum",
-                "Thassleriana",
-                "Mtruncatula",
-                "Bdistachyon"
-        ),
-        n_core_orthologs = NULL
-) + ggplot2::geom_line(ggplot2::aes(x = subject_species,
-                                    y = n_orthologs,
-                                    group = 1), data = qcovhsp_70_perc_identity_30, size = 2)  + ggplot2::geom_point(size = 4, data = qcovhsp_70_perc_identity_30) +
-        ggplot2::geom_text(
-                ggplot2::aes(label = n_orthologs),
-                data = qcovhsp_70_perc_identity_50,
-                hjust = 0,
-                vjust = 2,
-                size = 3
-        ) + ggplot2::geom_line(ggplot2::aes(x = subject_species,
-                                            y = n_orthologs,
-                                            group = 1), data = qcovhsp_70_perc_identity_50, size = 2)  + ggplot2::geom_point(size = 4, data = qcovhsp_70_perc_identity_50) +
-        ggplot2::geom_text(
-                ggplot2::aes(label = n_orthologs),
-                data = qcovhsp_70_perc_identity_50,
-                hjust = 0,
-                vjust = 2,
-                size = 3
-        ) + ggplot2::geom_line(ggplot2::aes(x = subject_species,
-                                            y = n_orthologs,
-                                            group = 1), data = qcovhsp_70_perc_identity_70, size = 2)  + ggplot2::geom_point(size = 4, data = qcovhsp_70_perc_identity_70) +
-        ggplot2::geom_text(
-                ggplot2::aes(label = n_orthologs),
-                data = qcovhsp_90_perc_identity_70,
-                hjust = 0,
-                vjust = 2,
-                size = 3
-        ) + ggplot2::geom_line(ggplot2::aes(x = subject_species,
-                                            y = n_orthologs,
-                                            group = 1), data = qcovhsp_90_perc_identity_70, size = 2)  + ggplot2::geom_point(size = 4, data = qcovhsp_90_perc_identity_70) +
-        ggplot2::geom_text(
-                ggplot2::aes(label = n_orthologs),
-                data = qcovhsp_70_perc_identity_50,
-                hjust = 0,
-                vjust = 2,
-                size = 3
-        ) + ggplot2::geom_line(ggplot2::aes(x = subject_species,
-                                            y = n_orthologs,
-                                            group = 1), data = qcovhsp_90_perc_identity_90, size = 2)  + ggplot2::geom_point(size = 4, data = qcovhsp_90_perc_identity_90) +
-        ggplot2::geom_text(
-                ggplot2::aes(label = n_orthologs),
-                data = qcovhsp_90_perc_identity_90,
-                hjust = 0,
-                vjust = 2,
-                size = 3
-        )
+p_perc_identity <- metablastr::gg_species_feature_blast_tbl(devseq_ortho_tables_final,
+  type = "perc_identity",
+  order = c(
+    "Alyrata",
+            "Crubella",
+            "Esalsugineum",
+            "Thassleriana",
+            "Mtruncatula",
+            "Bdistachyon"
+  ), xlab = "Percent Identity (BLAST hits)"
+)
+
+p_ortholog_divergence_devseq <- gridExtra::grid.arrange(p_alig_length, p_dNdS_5_Athaliana, p_perc_identity, ncol = 1)
+
+cowplot::save_plot(
+    "p_ortholog_divergence_devseq.pdf",
+    p_ortholog_divergence_devseq,
+    base_height = 20,
+    base_width = 12
+)
 
 
+p_dNdS_5_devseq <- metablastr::gg_species_dnds_blast_tbl(
+  dplyr::filter(devseq_ortho_tables_final, !is.na(dNdS), dNdS <= 5),
+  type = "dNdS",
+  order = c(
+    "Alyrata",
+            "Crubella",
+            "Esalsugineum",
+            "Thassleriana",
+            "Mtruncatula",
+            "Bdistachyon"
+  ), xlab = "dNdS"
+)
+
+p_dN_5_devseq<- metablastr::gg_species_dnds_blast_tbl(
+  dplyr::filter(devseq_ortho_tables_final, !is.na(dNdS), dNdS <= 5),
+  type = "dN",
+  order = c(
+    "Alyrata",
+            "Crubella",
+            "Esalsugineum",
+            "Thassleriana",
+            "Mtruncatula",
+            "Bdistachyon"
+  ), xlab = "dN"
+)
+
+p_dS_5_devseq <- metablastr::gg_species_dnds_blast_tbl(
+  dplyr::filter(devseq_ortho_tables_final, !is.na(dNdS), dNdS <= 5),
+  type = "dS",
+  order = c(
+    "Alyrata",
+            "Crubella",
+            "Esalsugineum",
+            "Thassleriana",
+            "Mtruncatula",
+            "Bdistachyon"
+  ), xlab = "dS"
+)
+
+
+p_dN_plus_dS_5_devseq <- metablastr::gg_species_dnds_blast_tbl(
+  dplyr::filter(devseq_ortho_tables_final, !is.na(dNdS), dNdS <= 5),
+  type = "dN+dS",
+  order = c(
+    "Alyrata",
+            "Crubella",
+            "Esalsugineum",
+            "Thassleriana",
+            "Mtruncatula",
+            "Bdistachyon"
+  ), xlab = "dN+dS"
+)
+
+p_all_dNdS_devseq <- gridExtra::grid.arrange(p_dN_5_devseq, p_dS_5_devseq, p_dNdS_5_devseq, p_dN_plus_dS_5_devseq, nrow = 2)
+
+cowplot::save_plot(
+    "p_all_dNdS_devseq.pdf",
+    p_all_dNdS_devseq,
+    base_height = 16,
+    base_width = 20
+)
 ```
 
 ## EvoSeq
@@ -272,7 +374,7 @@ orthologr::map_generator_dnds(
                aa_aln_tool      = "NW", # use Needleman-Wunsch Algorithm for global codon alignment
                codon_aln_tool   = "pal2nal", 
                dnds_est_method  = "Comeron", # use robust dN/dS estimation (Comeron's method)
-               min_qry_coverage_hsp = 70, # min query coverage of hsp >= 70% of initial query locus
+               min_qry_coverage_hsp = 30, # min query coverage of hsp >= 30% of initial query locus
                min_qry_perc_identity = 30, # min percent identity of hsp >= 30% to initial query locus
                output_folder    = "../DevSeq_data/Brawand_dNdS_maps/OrthologR/Brawand_Animals/Query_Human/",
                comp_cores       = 4
@@ -291,13 +393,83 @@ brawand_ortho_tables <- orthologr::generate_ortholog_tables_all(
     format = c("gtf", "gtf")
 )
 
-readr::write_tsv(brawand_ortho_tables, "brawand_ortho_tables_all_splice_variants.tsv", col_names = TRUE)
+brawand_ortho_tables <- dplyr::mutate(brawand_ortho_tables, scope = 1 - (abs(q_len - alig_length) / q_len))
+```
 
+### Determining best homology threshold for orthologs
+
+```r
+p_all_ortho_thresholds_brawand <- orthologr::plot_diverse_homology_thresholds(brawand_ortho_tables, 
+     species_order = c(
+            "Chimp",
+            "Bonobo",
+            "Gorilla",
+            "Orangutan",
+            "Macaque",
+            "Mouse",
+            "Opossum",
+            "Chicken"
+        ))
+
+cowplot::save_plot(
+    "p_all_ortho_thresholds_brawand.pdf",
+    p_all_ortho_thresholds_brawand,
+    base_height = 14,
+    base_width = 18
+)
+```
+
+### Gene locus vs splice variant threshold assessment for orthologs
+
+```r
+p_core_sets_multi_brawand <- orthologr::plot_diverse_homology_thresholds_core_orthologs(brawand_ortho_tables, species_order = c(
+            "Chimp",
+            "Bonobo",
+            "Gorilla",
+            "Orangutan",
+            "Macaque",
+            "Mouse",
+            "Opossum",
+            "Chicken"
+        ), type = "gene_locus")
+
+cowplot::save_plot(
+    "p_core_sets_multi_brawand.pdf",
+    p_core_sets_multi_brawand,
+    base_height = 9,
+    base_width = 14
+)
+
+p_core_sets_multsplice_variant_brawand <- orthologr::plot_diverse_homology_thresholds_core_orthologs(brawand_ortho_tables, species_order = c(
+            "Chimp",
+            "Bonobo",
+            "Gorilla",
+            "Orangutan",
+            "Macaque",
+            "Mouse",
+            "Opossum",
+            "Chicken"
+        ), type = "both")
+
+
+cowplot::save_plot(
+    "p_core_sets_multsplice_variant_brawand.pdf",
+    p_core_sets_multsplice_variant_brawand,
+    base_height = 9,
+    base_width = 14
+)
+```
+### Retrieve final Brawand ortholog tables
+
+```r
+# use homology thresholds:
+brawand_ortho_tables_final <- dplyr::filter(brawand_ortho_tables,  qcovhsp >= 70, perc_identity >= 30, scope >= 0.7)
+readr::write_tsv(brawand_ortho_tables, "brawand_ortho_tables_all_splice_variants.tsv", col_names = TRUE)
 
 # retrieve the core set of orthologs in tidy data format
 brawand_core_orthologs <-
     orthologr::retrieve_core_orthologs(
-        ortho_tables = brawand_ortho_tables,
+        ortho_tables = brawand_ortho_tables_final,
         species_order = c(
             "Chimp",
             "Bonobo",
@@ -328,6 +500,164 @@ dplyr::summarize(
   n_non_unique_subject_id = length((subject_id))
 )
 ```
+
+### Visualizing Orthologr results
+
+```r
+p_n_orthos_human <- orthologr::plot_pairwise_orthologs(ortho_tables = brawand_ortho_tables_final,
+        species_order = c(
+            "Chimp",
+            "Bonobo",
+            "Gorilla",
+            "Orangutan",
+            "Macaque",
+            "Mouse",
+            "Opossum",
+            "Chicken"
+        ), 
+        n_core_orthologs = length(unique(brawand_core_orthologs$query_gene_locus_id)))
+
+
+cowplot::save_plot(
+    "p_n_orthos_human_brawand.pdf",
+    p_n_orthos_human,
+    base_height = 8,
+    base_width = 12
+)
+
+
+
+p_dNdS_human <- metablastr::gg_species_dnds_blast_tbl(
+  dplyr::filter(brawand_ortho_tables, !is.na(dNdS)),
+  type = "dN/dS",
+  order = c(
+    "Chimp",
+    "Bonobo",
+    "Gorilla",
+    "Orangutan",
+    "Macaque",
+    "Mouse",
+    "Opossum",
+    "Chicken"
+  ), xlab = "dN/dS"
+)
+
+p_dNdS_5_Human_brawand <- metablastr::gg_species_dnds_blast_tbl(
+  dplyr::filter(brawand_ortho_tables, !is.na(dNdS), dNdS <= 5),
+  type = "dN/dS",
+  order = c(
+    "Chimp",
+    "Bonobo",
+    "Gorilla",
+    "Orangutan",
+    "Macaque",
+    "Mouse",
+    "Opossum",
+    "Chicken"
+  ), xlab = "dN/dS"
+)
+p_all_human <- gridExtra::grid.arrange(p_n_orthos_human, p_dNdS_human, p_dNdS_5_Human_brawand)
+
+
+
+p_dN_5_human <- metablastr::gg_species_dnds_blast_tbl(
+  dplyr::filter(brawand_ortho_tables, !is.na(dNdS), dNdS <= 5),
+  type = "dN",
+  order = c(
+    "Chimp",
+    "Bonobo",
+    "Gorilla",
+    "Orangutan",
+    "Macaque",
+    "Mouse",
+    "Opossum",
+    "Chicken"
+  ), xlab = "dN"
+)
+
+p_dS_5_human <- metablastr::gg_species_dnds_blast_tbl(
+  dplyr::filter(brawand_ortho_tables, !is.na(dNdS), dNdS <= 5),
+  type = "dS",
+  order = c(
+    "Chimp",
+    "Bonobo",
+    "Gorilla",
+    "Orangutan",
+    "Macaque",
+    "Mouse",
+    "Opossum",
+    "Chicken"
+  ), xlab = "dS"
+)
+
+
+p_dN_plus_dS_5_human <- metablastr::gg_species_dnds_blast_tbl(
+  dplyr::filter(brawand_ortho_tables, !is.na(dNdS), dNdS <= 5),
+  type = "dN+dS",
+  order = c(
+    "Chimp",
+    "Bonobo",
+    "Gorilla",
+    "Orangutan",
+    "Macaque",
+    "Mouse",
+    "Opossum",
+    "Chicken"
+  ), xlab = "dN+dS"
+)
+
+p_all_dNdS_human <- gridExtra::grid.arrange(p_dN_5_human, p_dS_5_human, p_dNdS_5_human, p_dN_plus_dS_5_human, nrow = 2)
+
+cowplot::save_plot(
+    "p_all_dNdS_human.pdf",
+    p_all_dNdS_human,
+    base_height = 16,
+    base_width = 20
+)
+
+
+p_alig_length_brawand <- metablastr::gg_species_feature_blast_tbl(brawand_ortho_tables,
+  type = "alig_length",
+  order = c(
+    "Chimp",
+    "Bonobo",
+    "Gorilla",
+    "Orangutan",
+    "Macaque",
+    "Mouse",
+    "Opossum",
+    "Chicken"
+  ), xlab = "Alignment Length (BLAST hits)"
+)
+
+
+p_perc_identity_brawand <- metablastr::gg_species_feature_blast_tbl(brawand_ortho_tables,
+  type = "perc_identity",
+  order = c(
+    "Chimp",
+    "Bonobo",
+    "Gorilla",
+    "Orangutan",
+    "Macaque",
+    "Mouse",
+    "Opossum",
+    "Chicken"
+  ), xlab = "Percent Identity (BLAST hits)"
+)
+
+
+
+p_ortholog_divergence_brawand <- gridExtra::grid.arrange(p_alig_length_brawand, p_dNdS_5_Human_brawand, p_perc_identity_brawand)
+
+cowplot::save_plot(
+    "p_ortholog_divergence_brawand.pdf",
+    p_ortholog_divergence_brawand,
+    base_height = 20,
+    base_width = 12
+)
+```
+
+
 ### Orthogroup Inference with Orthofinder2
 
 #### Running Orthofinder2 for DevSeq Species
@@ -348,6 +678,49 @@ orthologr::retrieve_longest_isoforms_all(
 
 # run orthofinder2 on protein sequences with longest splice variants 
 orthologr::orthofinder2(proteome_folder = "../DevSeq_data/DevSeq_Proteins_longest_isoforms", comp_cores = 4)
+
+
+### Visualize Pairwise Orthogroups
+path_to_devseq_pairwise_orthos <- "../DevSeq_data/DevSeq_orthologs/Orthofinder2/DevSeq_Plants/Results_DevSeq_Proteins_longest_isoforms/Orthologues/Orthologues_Athaliana/"
+devseq_pairwise_files <- list.files(path_to_devseq_pairwise_orthos)
+
+devseq_pairwise_df <- lapply(file.path(path_to_devseq_pairwise_orthos, devseq_pairwise_files), readr::read_tsv)
+names(devseq_pairwise_df) <- c("Alyrata", "Bdistachyon", "Crubella", "Esalsugineum", "Mtruncatula", "Thassleriana")
+
+devseq_pairwise_n_orthogroups <- lapply(devseq_pairwise_df, nrow)
+
+devseq_pairwise_df <- tibble::tibble(subject_species = names(devseq_pairwise_n_orthogroups), n_orthologs = unlist(devseq_pairwise_n_orthogroups))
+
+
+devseq_pairwise_df$subject_species <- factor(devseq_pairwise_df$subject_species,
+                                             levels = c("Alyrata",
+                                                        "Crubella",
+                                                        "Esalsugineum",
+                                                        "Thassleriana",
+                                                        "Mtruncatula",
+                                                        "Bdistachyon"))
+### retrieve core orthogroups
+og_file_devseq <- "../DevSeq_data/DevSeq_orthologs/Orthofinder2/DevSeq_Plants/Results_DevSeq_Proteins_longest_isoforms/Orthogroups/Orthogroups.tsv"
+sc_file_devseq <- "../DevSeq_data/DevSeq_orthologs/Orthofinder2/DevSeq_Plants/Results_DevSeq_Proteins_longest_isoforms/Orthogroups/Orthogroups_SingleCopyOrthologues.txt"
+
+DevSeq_OF2_CoreOrthologs <- orthologr::orthofinder2_retrieve_core_orthologs(orthogroups_file = og_file_devseq, single_copy_file = sc_file_devseq)
+
+### visualize pairwise orthologs
+devseq_plot <-
+        metablastr::gg_pairwise_orthologs_line(devseq_pairwise_df,
+                                               vline = nrow(DevSeq_OF2_CoreOrthologs),
+                                               ymax = 26000,
+                                               title = "Orthofinder2: Pairwise genome comparisons: A. thaliana vs. Subject Species")
+
+# store DevSeq Orthofinder2 core orthogroups
+readr::write_tsv(DevSeq_OF2_CoreOrthologs, "devseq_OF2_CoreOrthologs.tsv",col_names = TRUE)
+
+cowplot::save_plot(
+    "p_orthofinder2_orthologs_devseq.pdf",
+    devseq_plot,
+    base_height = 8,
+    base_width = 12
+)
 ```
 
 #### Running Orthofinder2 for Brawand Species
@@ -444,16 +817,6 @@ extractSeqsFromAnnotation(
   metaFeature = "tx",
   feature = "CDS"
 )
-
-# Platypus
-extractSeqsFromAnnotation(
-  annotation = "../DevSeq_data/Brawand_GTF/Ornithorhynchus_anatinus.OANA5.92.gtf",
-  genome_fasta = "../DevSeq_data/Brawand_Genomes/Ornithorhynchus_anatinus.OANA5.dna.toplevel_new.fa",
-  outputFile = "../DevSeq_data/Brawand_CDS/Platypus.fa",
-  format = "gtf",
-  metaFeature = "tx",
-  feature = "CDS"
-)
 ```
 
 
@@ -470,7 +833,6 @@ file.rename(from = "../DevSeq_data/Brawand_GTF/Query_files/Homo_sapiens.GRCh38.9
 file.rename(from = "../DevSeq_data/Brawand_GTF/Query_files/Macaca_mulatta.Mmul_8.0.1.92.gtf", to = "../DevSeq_data/Brawand_GTF/Query_files/Macaque.gtf")
 file.rename(from = "../DevSeq_data/Brawand_GTF/Query_files/Monodelphis_domestica.monDom5.92.gtf", to = "../DevSeq_data/Brawand_GTF/Query_files/Opossum.gtf")
 file.rename(from = "../DevSeq_data/Brawand_GTF/Query_files/Mus_musculus.GRCm38.92.gtf", to = "../DevSeq_data/Brawand_GTF/Query_files/Mouse.gtf")
-file.rename(from = "../DevSeq_data/Brawand_GTF/Query_files/Ornithorhynchus_anatinus.OANA5.92.gtf", to = "../DevSeq_data/Brawand_GTF/Query_files/Platypus.gtf")
 file.rename(from = "../DevSeq_data/Brawand_GTF/Query_files/Pan_paniscus.panpan1.1.92.gtf", to = "../DevSeq_data/Brawand_GTF/Query_files/Bonobo.gtf")
 file.rename(from = "../DevSeq_data/Brawand_GTF/Query_files/Pan_troglodytes.Pan_tro_3.0.92.gtf", to = "../DevSeq_data/Brawand_GTF/Query_files/Chimp.gtf")
 file.rename(from = "../DevSeq_data/Brawand_GTF/Query_files/Pongo_abelii.PPYG2.92.gtf", to = "../DevSeq_data/Brawand_GTF/Query_files/Orangutan.gtf")
@@ -484,6 +846,49 @@ orthologr::retrieve_longest_isoforms_all(
 
 # run orthofinder2 on protein sequences with longest splice variants 
 orthologr::orthofinder2(proteome_folder = "../DevSeq_data/Brawand_Proteins_longest_isoforms", comp_cores = 4)
+
+# Brawand Core Orthologs
+og_file_brawand <- "../DevSeq_data/Brawand_orthologs/Orthofinder2/Results_Brawand_Proteins_longest_isoforms/Orthogroups/Orthogroups.tsv"
+sc_file_brawand <- "../DevSeq_data/Brawand_orthologs/Orthofinder2/Results_Brawand_Proteins_longest_isoforms/Orthogroups/Orthogroups_SingleCopyOrthologues.txt"
+
+Brawand_OF2_CoreOrthologs <- orthologr::orthofinder2_retrieve_core_orthologs(orthogroups_file = og_file_brawand, single_copy_file = sc_file_brawand)
+
+readr::write_tsv(Brawand_OF2_CoreOrthologs, "brawand_OF2_CoreOrthologs.tsv",col_names = TRUE)
+
+### Brawand Pairwise Orthologs
+Brawand_Statistics_PerSpecies <- readr::read_tsv("~/Desktop/Projects/orthofinder/orthofinder_results/Animals_Result/Results_Jan30/Comparative_Genomics_Statistics/Statistics_PerSpecies.tsv", n_max = 10)
+names(Brawand_Statistics_PerSpecies)[1] <- "Type"
+
+path_to_brawand_pairwise_orthos <- "../DevSeq_data/Brawand_orthologs/Orthofinder2/Results_Brawand_Proteins_longest_isoforms/Orthologues/Orthologues_Human"
+brawand_pairwise_files <- list.files(path_to_brawand_pairwise_orthos)
+
+brawand_pairwise_df <- lapply(file.path(path_to_brawand_pairwise_orthos, brawand_pairwise_files), readr::read_tsv)
+names(brawand_pairwise_df) <- c("Bonobo", "Chicken", "Chimp", "Gorilla", "Macaque", "Mouse", "Opossum", "Orangutan")
+
+brawand_pairwise_n_orthogroups <- lapply(brawand_pairwise_df, nrow)
+
+brawand_pairwise_df <- tibble::tibble(subject_species = names(brawand_pairwise_n_orthogroups), n_orthologs = unlist(brawand_pairwise_n_orthogroups))
+
+
+brawand_pairwise_df$subject_species <- factor(brawand_pairwise_df$subject_species,
+                                             levels = c("Chimp",
+                                                        "Bonobo",
+                                                        "Gorilla",
+                                                        "Orangutan",
+                                                        "Macaque",
+                                                        "Mouse",
+                                                        "Opossum",
+                                                        "Chicken"))
+
+
+brawand_plot <- metablastr::gg_pairwise_orthologs_line(brawand_pairwise_df, vline = nrow(Brawand_OF2_CoreOrthologs), title = "Orthofinder2: Pairwise genome comparisons: Human vs. Subject Species")
+
+cowplot::save_plot(
+    "p_orthofinder2_orthologs_brawand.pdf",
+    brawand_plot,
+    base_height = 8,
+    base_width = 12
+)
 ```
 
 
@@ -505,6 +910,7 @@ lnc_map_1e2 <- orthologr::map_generator_lnc(
   min_qry_perc_identity = 30,
   comp_cores       = 4
 )
+
 
 devseq_core_orthologs_lnc_1e2 <-
     orthologr::lnc_map_core_orthologs(
@@ -622,7 +1028,7 @@ all_lncRNAs_df_1e10 <- orthologr::lnc_map_counts(lnc_map_1e10, species_order = c
     "Bdistachyon"
   ))
   
-metablastr::gg_pairwise_orthologs_line(all_lncRNAs_df_1e2, title = "Number of annotated lncRNAs") + 
+metablastr::gg_pairwise_orthologs_line(all_lncRNAs_df_1e2, title = "Number of orthologous lncRNAs: A. thaliana vs Subject Species") + 
 ggplot2::geom_line(ggplot2::aes(x = subject_species,
                                     y = n_orthologs,
                                     group = 1), 
@@ -633,7 +1039,7 @@ ggplot2::geom_line(ggplot2::aes(x = subject_species,
                 data = all_lncRNAs_df_1e3,
                 hjust = 0,
                 vjust = 2,
-                size = 3
+                size = 2
         )  + 
 ggplot2::geom_line(ggplot2::aes(x = subject_species,
                                     y = n_orthologs,
@@ -645,7 +1051,7 @@ ggplot2::geom_line(ggplot2::aes(x = subject_species,
                 data = all_lncRNAs_df_1e5,
                 hjust = 0,
                 vjust = 2,
-                size = 3
+                size = 2
         )  + 
 ggplot2::geom_line(ggplot2::aes(x = subject_species,
                                     y = n_orthologs,
@@ -657,7 +1063,7 @@ ggplot2::geom_line(ggplot2::aes(x = subject_species,
                 data = all_lncRNAs_df_1e7,
                 hjust = 0,
                 vjust = 2,
-                size = 3
+                size = 2
         )  + 
 ggplot2::geom_line(ggplot2::aes(x = subject_species,
                                     y = n_orthologs,
@@ -669,12 +1075,14 @@ ggplot2::geom_line(ggplot2::aes(x = subject_species,
                 data = all_lncRNAs_df_1e10,
                 hjust = 0,
                 vjust = 2,
-                size = 3
+                size = 2
         ) 
 
+p_all_lncRNA_plot <- metablastr::gg_pairwise_orthologs_line(all_lncRNAs_df_1e2, title = "Number of orthologous lncRNAs (only NATs): A. thaliana vs Subject Species")
+
 cowplot::save_plot(
-  "all_lncRNA_plot.pdf",
-  all_lncRNA_plot,
+  "p_all_lncRNA_plot.pdf",
+  p_all_lncRNA_plot,
   base_height = 8,
   base_width = 14
 )
