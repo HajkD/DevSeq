@@ -1088,6 +1088,59 @@ cowplot::save_plot(
 )
 ```
 
+## Promotor Evolution Analysis
+
+### Extracting promotor sequences of all genes from all DevSeq species
+
+```r
+anno_files <- file.path("/Volumes/BKP_1/BKP_1/devseq_data/DevSeq_GTF/Query_files", list.files("/Volumes/BKP_1/BKP_1/devseq_data/DevSeq_GTF/Query_files"))
+genome_files <- file.path("/Volumes/BKP_1/BKP_1/devseq_data/DevSeq_Genomes/Query_files", list.files("/Volumes/BKP_1/BKP_1/devseq_data/DevSeq_Genomes/Query_files"))
+# c(250, 500, 1000, 1500, 2000)
+promotor_length_vector <- c(250, 500, 1000)
+
+working_dir <- getwd()
+
+dir.create("Promotor_Sequences")
+message("Starting promotor extraction for promotor lengths: ", paste0(promotor_length_vector, collapse = ", "))
+message(" and species: ", paste0(genome_files, collapse = ", "), " ...")
+for (j in seq_len(length(promotor_length_vector))) {
+message("Processing promotor length ", promotor_length_vector[j], " ...")
+
+if (!file.exists(file.path("Promotor_Sequences", paste0("Promotor_length_", promotor_length_vector[j]))))
+   dir.create(file.path("Promotor_Sequences", paste0("Promotor_length_", promotor_length_vector[j])))
+   
+  for (i in seq_len(length(anno_files))) {
+    species_name <-
+      unlist(stringr::str_split(basename(genome_files[i]), "[.]"))[1]
+      message("Processing species ", species_name, " ...")
+
+   setwd(file.path("Promotor_Sequences", paste0("Promotor_length_", promotor_length_vector[j])))
+   
+    metablastr::extract_promotor_seqs_from_genome(
+      annotation_file = anno_files[i],
+      genome_file = genome_files[i],
+      annotation_format = "gtf",
+      promotor_length = promotor_length_vector[j]
+      )
+      
+    setwd(working_dir)  
+    cat("\n")
+    cat("\n")
+  }
+  message("Promotor extraction terminated successfully!")
+}
+```
+
+```r
+promotor_homology_ath_500 <-
+  orthologr::promotor_divergence_of_orthologous_genes(
+        promotor_folder = "Promotor_Sequences/Promotor_length_500/",
+        ortholog_tables_folder = "orthologs_by_gene_locus_qry_athaliana")
+        
+readr::write_delim(promotor_homology_ath_500, "ortholog_table_promotor_homology_ath_500.csv", delim = ";")
+```
+
+
 ## Install `DevSeqR` package
 
 The [DevSeqR package](https://github.com/HajkD/DevSeqR) allows users to reproduce all analyses and to perform
