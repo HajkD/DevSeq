@@ -1132,14 +1132,123 @@ if (!file.exists(file.path("Promotor_Sequences", paste0("Promotor_length_", prom
 ```
 
 ```r
+# compute pairwise Kimura DNA Distances for promotor sequences (250bp)
+# of orthologous genes between A thaliana and all subject species
+promotor_homology_ath_250 <-
+  orthologr::promotor_divergence_of_orthologous_genes(
+        promotor_folder = "Promotor_Sequences/Promotor_length_250/",
+        ortholog_tables_folder = "orthologs_by_gene_locus_qry_athaliana",
+        ortholog_promotor_seq_output = "ortholog_genes_promotor_seqs_250")
+        
+readr::write_delim(promotor_homology_ath_250, "ortholog_table_promotor_homology_ath_250.csv", delim = ";")
+
+ortholog_table_promotor_homology_ath_250 <- readr::read_delim("/Volumes/BKP_1/BKP_1/devseq_data/DevSeq_Promotor_Analysis/ortholog_table_promotor_homology_ath_250.csv", delim = ";")
+
+ortholog_table_promotor_homology_ath_250 <- dplyr::filter(ortholog_table_promotor_homology_ath_250, promotor_dist <= 10)
+
+# compute pairwise Kimura DNA Distances for promotor sequences (500bp)
+# of orthologous genes between A thaliana and all subject species
 promotor_homology_ath_500 <-
   orthologr::promotor_divergence_of_orthologous_genes(
         promotor_folder = "Promotor_Sequences/Promotor_length_500/",
-        ortholog_tables_folder = "orthologs_by_gene_locus_qry_athaliana")
+        ortholog_tables_folder = "orthologs_by_gene_locus_qry_athaliana",
+        ortholog_promotor_seq_output = "ortholog_genes_promotor_seqs_500")
         
 readr::write_delim(promotor_homology_ath_500, "ortholog_table_promotor_homology_ath_500.csv", delim = ";")
+
+ortholog_table_promotor_homology_ath_500 <- readr::read_delim("/Volumes/BKP_1/BKP_1/devseq_data/DevSeq_Promotor_Analysis/ortholog_table_promotor_homology_ath_500.csv", delim = ";")
+
+ortholog_table_promotor_homology_ath_500 <- plyr::filter(ortholog_table_promotor_homology_ath_500, promotor_dist <= 10)
+
+
+# compute pairwise Kimura DNA Distances for promotor sequences (1000bp)
+# of orthologous genes between A thaliana and all subject species
+promotor_homology_ath_1000 <-
+  orthologr::promotor_divergence_of_orthologous_genes(
+        promotor_folder = "Promotor_Sequences/Promotor_length_1000/",
+        ortholog_tables_folder = "orthologs_by_gene_locus_qry_athaliana",
+        ortholog_promotor_seq_output = "ortholog_genes_promotor_seqs_1000")
+        
+readr::write_delim(promotor_homology_ath_1000, "ortholog_table_promotor_homology_ath_1000.csv", delim = ";")
 ```
 
+### Visualizing the pairwise promotor sequence distance distributions between A thaliana vs. subjects
+
+```r
+### Promotor length 250
+metablastr::gg_species_promotor_dist_blast_tbl(
+  ortholog_table_promotor_homology_ath_250,
+  type = "promotor_dist",
+  order = c(
+    "Alyrata",
+    "Crubella",
+    "Esalsugineum",
+    "Thassleriana",
+    "Mtruncatula",
+    "Bdistachyon"
+  ),
+  title = "Distributions of Pairwise Promotor Sequence Distance (250bp) Between A thaliana vs. Subjects",
+  xlab = "Kimura DNA Distance Between Promotors of Orthologous A thaliana Genes vs Subject Genes"
+)
+
+### Promotor length 500
+metablastr::gg_species_promotor_dist_blast_tbl(
+  ortholog_table_promotor_homology_ath_500,
+  type = "promotor_dist",
+  order = c(
+    "Alyrata",
+    "Crubella",
+    "Esalsugineum",
+    "Thassleriana",
+    "Mtruncatula",
+    "Bdistachyon"
+  ),
+  title = "Distributions of Pairwise Promotor Sequence Distance (500bp) Between A thaliana vs. Subjects",
+  xlab = "Kimura DNA Distance Between Promotors of Orthologous A thaliana Genes vs Subject Genes"
+)
+
+### Promotor length 1000
+metablastr::gg_species_promotor_dist_blast_tbl(
+  ortholog_table_promotor_homology_ath_1000,
+  type = "promotor_dist",
+  order = c(
+    "Alyrata",
+    "Crubella",
+    "Esalsugineum",
+    "Thassleriana",
+    "Mtruncatula",
+    "Bdistachyon"
+  ),
+  title = "Distributions of Pairwise Promotor Sequence Distance (1000bp) Between A thaliana vs. Subjects",
+  xlab = "Kimura DNA Distance Between Promotors of Orthologous A thaliana Genes vs Subject Genes"
+)
+```
+
+```r
+### Extract genes with promotor distance < 0.2 for PANTHER analysis (250bp)
+readr::write_lines(unique(
+  dplyr::filter(
+    ortholog_table_promotor_homology_ath_250,
+    promotor_dist <= 0.2
+  )$query_gene_locus_id
+), "gene_list_ortholog_table_promotor_homology_ath_250_smaller_0_2.txt")
+
+### Extract genes with promotor distance < 0.2 for PANTHER analysis (500bp)
+readr::write_lines(unique(
+  dplyr::filter(
+    ortholog_table_promotor_homology_ath_500,
+    promotor_dist <= 0.2
+  )$query_gene_locus_id
+), "gene_list_ortholog_table_promotor_homology_ath_500_smaller_0_2.txt")
+
+### Extract genes with promotor distance < 0.2 for PANTHER analysis (1000bp)
+readr::write_lines(unique(
+  dplyr::filter(
+    ortholog_table_promotor_homology_ath_1000,
+    promotor_dist <= 0.2
+  )$query_gene_locus_id
+), "gene_list_ortholog_table_promotor_homology_ath_1000_smaller_0_2.txt")
+```
 
 ## Install `DevSeqR` package
 
