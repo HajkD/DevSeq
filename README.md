@@ -1090,6 +1090,8 @@ cowplot::save_plot(
 
 ## Promotor Evolution Analysis
 
+## DevSeq
+
 ### Extracting promotor sequences of all genes from all DevSeq species
 
 ```r
@@ -1158,7 +1160,7 @@ readr::write_delim(promotor_homology_ath_500, "ortholog_table_promotor_homology_
 
 ortholog_table_promotor_homology_ath_500 <- readr::read_delim("/Volumes/BKP_1/BKP_1/devseq_data/DevSeq_Promotor_Analysis/ortholog_table_promotor_homology_ath_500.csv", delim = ";")
 
-ortholog_table_promotor_homology_ath_500 <- plyr::filter(ortholog_table_promotor_homology_ath_500, promotor_dist <= 10)
+ortholog_table_promotor_homology_ath_500 <- dplyr::filter(ortholog_table_promotor_homology_ath_500, promotor_dist <= 10)
 
 
 # compute pairwise Kimura DNA Distances for promotor sequences (1000bp)
@@ -1170,13 +1172,17 @@ promotor_homology_ath_1000 <-
         ortholog_promotor_seq_output = "ortholog_genes_promotor_seqs_1000")
         
 readr::write_delim(promotor_homology_ath_1000, "ortholog_table_promotor_homology_ath_1000.csv", delim = ";")
+
+ortholog_table_promotor_homology_ath_1000 <- readr::read_delim("/Volumes/BKP_1/BKP_1/devseq_data/DevSeq_Promotor_Analysis/ortholog_table_promotor_homology_ath_1000.csv", delim = ";")
+
+ortholog_table_promotor_homology_ath_1000 <- dplyr::filter(ortholog_table_promotor_homology_ath_1000, promotor_dist <= 10)
 ```
 
 ### Visualizing the pairwise promotor sequence distance distributions between A thaliana vs. subjects
 
 ```r
 ### Promotor length 250
-metablastr::gg_species_promotor_dist_blast_tbl(
+p_promotor_dist_250 <- metablastr::gg_species_promotor_dist_blast_tbl(
   ortholog_table_promotor_homology_ath_250,
   type = "promotor_dist",
   order = c(
@@ -1191,8 +1197,15 @@ metablastr::gg_species_promotor_dist_blast_tbl(
   xlab = "Kimura DNA Distance Between Promotors of Orthologous A thaliana Genes vs Subject Genes"
 )
 
+cowplot::save_plot(
+  "p_promotor_dist_250bp.pdf",
+  p_promotor_dist_250,
+  base_height = 8,
+  base_width = 14
+)
+
 ### Promotor length 500
-metablastr::gg_species_promotor_dist_blast_tbl(
+p_promotor_dist_500 <-metablastr::gg_species_promotor_dist_blast_tbl(
   ortholog_table_promotor_homology_ath_500,
   type = "promotor_dist",
   order = c(
@@ -1207,8 +1220,15 @@ metablastr::gg_species_promotor_dist_blast_tbl(
   xlab = "Kimura DNA Distance Between Promotors of Orthologous A thaliana Genes vs Subject Genes"
 )
 
+cowplot::save_plot(
+  "p_promotor_dist_500bp.pdf",
+  p_promotor_dist_500,
+  base_height = 8,
+  base_width = 14
+)
+
 ### Promotor length 1000
-metablastr::gg_species_promotor_dist_blast_tbl(
+p_promotor_dist_1000 <- metablastr::gg_species_promotor_dist_blast_tbl(
   ortholog_table_promotor_homology_ath_1000,
   type = "promotor_dist",
   order = c(
@@ -1221,6 +1241,13 @@ metablastr::gg_species_promotor_dist_blast_tbl(
   ),
   title = "Distributions of Pairwise Promotor Sequence Distance (1000bp) Between A thaliana vs. Subjects",
   xlab = "Kimura DNA Distance Between Promotors of Orthologous A thaliana Genes vs Subject Genes"
+)
+
+cowplot::save_plot(
+  "p_promotor_dist_1000bp.pdf",
+  p_promotor_dist_1000,
+  base_height = 8,
+  base_width = 14
 )
 ```
 
@@ -1248,6 +1275,49 @@ readr::write_lines(unique(
     promotor_dist <= 0.2
   )$query_gene_locus_id
 ), "gene_list_ortholog_table_promotor_homology_ath_1000_smaller_0_2.txt")
+```
+
+## Brawand
+
+### Extracting promotor sequences of all genes from all Brawand species
+
+```r
+anno_files <- file.path("/Volumes/BKP_1/BKP_1/devseq_data/Brawand_GTF/Query_files", list.files("/Volumes/BKP_1/BKP_1/devseq_data/Brawand_GTF/Query_files"))
+genome_files <- file.path("/Volumes/BKP_1/BKP_1/devseq_data/Brawand_Genomes", list.files("/Volumes/BKP_1/BKP_1/devseq_data/Brawand_Genomes"))
+# c(250, 500, 1000, 1500, 2000)
+promotor_length_vector <- c(250, 500, 1000)
+
+working_dir <- getwd()
+
+dir.create("Promotor_Sequences_Brawand")
+message("Starting promotor extraction for promotor lengths: ", paste0(promotor_length_vector, collapse = ", "))
+message(" and species: ", paste0(genome_files, collapse = ", "), " ...")
+for (j in seq_len(length(promotor_length_vector))) {
+message("Processing promotor length ", promotor_length_vector[j], " ...")
+
+if (!file.exists(file.path("Promotor_Sequences_Brawand", paste0("Promotor_length_", promotor_length_vector[j]))))
+   dir.create(file.path("Promotor_Sequences_Brawand", paste0("Promotor_length_", promotor_length_vector[j])))
+   
+  for (i in seq_len(length(anno_files))) {
+    species_name <-
+      unlist(stringr::str_split(basename(genome_files[i]), "[.]"))[1]
+      message("Processing species ", species_name, " ...")
+
+   setwd(file.path("Promotor_Sequences_Brawand", paste0("Promotor_length_", promotor_length_vector[j])))
+   
+    metablastr::extract_promotor_seqs_from_genome(
+      annotation_file = anno_files[i],
+      genome_file = genome_files[i],
+      annotation_format = "gtf",
+      promotor_length = promotor_length_vector[j]
+      )
+      
+    setwd(working_dir)  
+    cat("\n")
+    cat("\n")
+  }
+  message("Promotor extraction terminated successfully!")
+}
 ```
 
 ## Install `DevSeqR` package
