@@ -1277,9 +1277,12 @@ readr::write_lines(unique(
 ), "gene_list_ortholog_table_promotor_homology_ath_1000_smaller_0_2.txt")
 ```
 
+
 ## Brawand
 
 ### Extracting promotor sequences of all genes from all Brawand species
+
+__Please make sure that you have enough memory (RAM) resources for running the following steps (> 100GB RAM) since the human genome file is >50GB.__
 
 ```r
 anno_files <- file.path("/Volumes/BKP_1/BKP_1/devseq_data/Brawand_GTF/Query_files", list.files("/Volumes/BKP_1/BKP_1/devseq_data/Brawand_GTF/Query_files"))
@@ -1319,6 +1322,52 @@ if (!file.exists(file.path("Promotor_Sequences_Brawand", paste0("Promotor_length
   message("Promotor extraction terminated successfully!")
 }
 ```
+
+```r
+# compute pairwise Kimura DNA Distances for promotor sequences (250bp)
+# of orthologous genes between Human and all subject species
+promotor_homology_human_250 <-
+  orthologr::promotor_divergence_of_orthologous_genes(
+        promotor_folder = "Brawand_Promotor_Sequences/Promotor_length_250/",
+        ortholog_tables_folder = "orthologs_by_gene_locus_qry_human",
+        ortholog_promotor_seq_output = "Brawand_Promotor_Analysis/brawand_ortholog_genes_promotor_seqs_250")
+        
+readr::write_delim(promotor_homology_human_250, "Brawand_Promotor_Analysis/brawand_ortholog_table_promotor_homology_human_250.csv", delim = ";")
+
+ortholog_table_promotor_homology_human_250 <- readr::read_delim("Brawand_Promotor_Analysis/brawand_ortholog_table_promotor_homology_human_250.csv", delim = ";")
+
+ortholog_table_promotor_homology_human_250 <- dplyr::filter(ortholog_table_promotor_homology_human_250, promotor_dist <= 10)
+
+# compute pairwise Kimura DNA Distances for promotor sequences (500bp)
+# of orthologous genes between A thaliana and all subject species
+promotor_homology_ath_500 <-
+  orthologr::promotor_divergence_of_orthologous_genes(
+        promotor_folder = "Brawand_Promotor_Sequences/Promotor_length_500/",
+        ortholog_tables_folder = "orthologs_by_gene_locus_qry_human",
+        ortholog_promotor_seq_output = "Brawand_Promotor_Analysis/brawand_ortholog_genes_promotor_seqs_500")
+        
+readr::write_delim(promotor_homology_ath_500, "brawand_ortholog_table_promotor_homology_human_500.csv", delim = ";")
+
+ortholog_table_promotor_homology_human_500 <- readr::read_delim("brawand_ortholog_table_promotor_homology_human_500.csv", delim = ";")
+
+ortholog_table_promotor_homology_human_500 <- dplyr::filter(ortholog_table_promotor_homology_human_500, promotor_dist <= 10)
+
+
+# compute pairwise Kimura DNA Distances for promotor sequences (1000bp)
+# of orthologous genes between A thaliana and all subject species
+promotor_homology_ath_1000 <-
+  orthologr::promotor_divergence_of_orthologous_genes(
+        promotor_folder = "Brawand_Promotor_Sequences/Promotor_length_1000/",
+        ortholog_tables_folder = "orthologs_by_gene_locus_qry_human",
+        ortholog_promotor_seq_output = "Brawand_Promotor_Analysis/brawand_ortholog_genes_promotor_seqs_1000")
+        
+readr::write_delim(promotor_homology_ath_1000, "brawand_ortholog_table_promotor_homology_human_1000.csv", delim = ";")
+
+ortholog_table_promotor_homology_ath_1000 <- readr::read_delim("brawand_ortholog_table_promotor_homology_human_1000.csv", delim = ";")
+
+ortholog_table_promotor_homology_ath_1000 <- dplyr::filter(ortholog_table_promotor_homology_ath_1000, promotor_dist <= 10)
+```
+
 
 ## Install `DevSeqR` package
 
