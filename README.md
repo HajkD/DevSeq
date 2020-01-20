@@ -1334,40 +1334,119 @@ promotor_homology_human_250 <-
         
 readr::write_delim(promotor_homology_human_250, "Brawand_Promotor_Analysis/brawand_ortholog_table_promotor_homology_human_250.csv", delim = ";")
 
-ortholog_table_promotor_homology_human_250 <- readr::read_delim("Brawand_Promotor_Analysis/brawand_ortholog_table_promotor_homology_human_250.csv", delim = ";")
+ortholog_table_promotor_homology_human_250 <- readr::read_delim("/Volumes/BKP_1/BKP_1/devseq_data/Brawand_Promotor_Analysis/brawand_ortholog_table_promotor_homology_human_250.csv", delim = ";")
 
 ortholog_table_promotor_homology_human_250 <- dplyr::filter(ortholog_table_promotor_homology_human_250, promotor_dist <= 10)
 
 # compute pairwise Kimura DNA Distances for promotor sequences (500bp)
-# of orthologous genes between A thaliana and all subject species
-promotor_homology_ath_500 <-
+# of orthologous genes between Human and all subject species
+promotor_homology_human_500 <-
   orthologr::promotor_divergence_of_orthologous_genes(
         promotor_folder = "Brawand_Promotor_Sequences/Promotor_length_500/",
         ortholog_tables_folder = "orthologs_by_gene_locus_qry_human",
         ortholog_promotor_seq_output = "Brawand_Promotor_Analysis/brawand_ortholog_genes_promotor_seqs_500")
         
-readr::write_delim(promotor_homology_ath_500, "brawand_ortholog_table_promotor_homology_human_500.csv", delim = ";")
+readr::write_delim(promotor_homology_human_500, "brawand_ortholog_table_promotor_homology_human_500.csv", delim = ";")
 
-ortholog_table_promotor_homology_human_500 <- readr::read_delim("brawand_ortholog_table_promotor_homology_human_500.csv", delim = ";")
+ortholog_table_promotor_homology_human_500 <- readr::read_delim("/Volumes/BKP_1/BKP_1/devseq_data/Brawand_Promotor_Analysis/brawand_ortholog_table_promotor_homology_human_500.csv", delim = ";")
 
 ortholog_table_promotor_homology_human_500 <- dplyr::filter(ortholog_table_promotor_homology_human_500, promotor_dist <= 10)
 
 
 # compute pairwise Kimura DNA Distances for promotor sequences (1000bp)
-# of orthologous genes between A thaliana and all subject species
-promotor_homology_ath_1000 <-
+# of orthologous genes between Human and all subject species
+promotor_homology_human_1000 <-
   orthologr::promotor_divergence_of_orthologous_genes(
         promotor_folder = "Brawand_Promotor_Sequences/Promotor_length_1000/",
         ortholog_tables_folder = "orthologs_by_gene_locus_qry_human",
         ortholog_promotor_seq_output = "Brawand_Promotor_Analysis/brawand_ortholog_genes_promotor_seqs_1000")
         
-readr::write_delim(promotor_homology_ath_1000, "brawand_ortholog_table_promotor_homology_human_1000.csv", delim = ";")
+readr::write_delim(promotor_homology_human_1000, "brawand_ortholog_table_promotor_homology_human_1000.csv", delim = ";")
 
-ortholog_table_promotor_homology_ath_1000 <- readr::read_delim("brawand_ortholog_table_promotor_homology_human_1000.csv", delim = ";")
+ortholog_table_promotor_homology_human_1000 <- readr::read_delim("/Volumes/BKP_1/BKP_1/devseq_data/Brawand_Promotor_Analysis/brawand_ortholog_table_promotor_homology_human_1000.csv", delim = ";")
 
-ortholog_table_promotor_homology_ath_1000 <- dplyr::filter(ortholog_table_promotor_homology_ath_1000, promotor_dist <= 10)
+ortholog_table_promotor_homology_human_1000 <- dplyr::filter(ortholog_table_promotor_homology_human_1000, promotor_dist <= 10)
 ```
 
+
+### Visualizing the pairwise promotor sequence distance distributions between Human vs. subjects
+
+```r
+### Promotor length 250
+p_human_promotor_dist_250 <- metablastr::gg_species_promotor_dist_blast_tbl(
+  ortholog_table_promotor_homology_human_250,
+  type = "promotor_dist",
+  order = c(
+    "Chimp",
+    "Bonobo",
+    "Gorilla",
+    "Orangutan",
+    "Macaque",
+    "Mouse",
+    "Opossum",
+    "Chicken"
+  ),
+  title = "Distributions of Pairwise Promotor Sequence Distance (250bp) Between Human vs. Subjects",
+  xlab = "Kimura DNA Distance Between Promotors of Orthologous Human Genes vs Subject Genes"
+)
+
+cowplot::save_plot(
+  "p_brawand_promotor_dist_250.pdf",
+  p_human_promotor_dist_250,
+  base_height = 8,
+  base_width = 14
+)
+
+### Promotor length 500
+p_human_promotor_dist_500 <-metablastr::gg_species_promotor_dist_blast_tbl(
+  ortholog_table_promotor_homology_human_500,
+  type = "promotor_dist",
+  order = c(
+    "Chimp",
+    "Bonobo",
+    "Gorilla",
+    "Orangutan",
+    "Macaque",
+    "Mouse",
+    "Opossum",
+    "Chicken"
+  ),
+  title = "Distributions of Pairwise Promotor Sequence Distance (500bp) Between Human vs. Subjects",
+  xlab = "Kimura DNA Distance Between Promotors of Orthologous Human Genes vs Subject Genes"
+)
+
+cowplot::save_plot(
+  "p_brawand_promotor_dist_500bp.pdf",
+  p_human_promotor_dist_500,
+  base_height = 8,
+  base_width = 14
+)
+
+### Promotor length 1000
+p_human_promotor_dist_1000 <- metablastr::gg_species_promotor_dist_blast_tbl(
+  ortholog_table_promotor_homology_human_1000,
+  type = "promotor_dist",
+  order = c(
+    "Chimp",
+    "Bonobo",
+    "Gorilla",
+    "Orangutan",
+    "Macaque",
+    "Mouse",
+    "Opossum",
+    "Chicken"
+  ),
+  title = "Distributions of Pairwise Promotor Sequence Distance (1000bp) Between Human vs. Subjects",
+  xlab = "Kimura DNA Distance Between Promotors of Orthologous Human Genes vs Subject Genes"
+)
+
+cowplot::save_plot(
+  "p_brawand_promotor_dist_1000bp.pdf",
+  p_human_promotor_dist_1000,
+  base_height = 8,
+  base_width = 14
+)
+```
 
 ## Install `DevSeqR` package
 
