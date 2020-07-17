@@ -677,6 +677,7 @@ orthologr::retrieve_longest_isoforms_all(
                            annotation_format = "gtf")
 
 # run orthofinder2 on protein sequences with longest splice variants 
+# system(paste0("orthofinder -f ", ws_wrap(proteome_folder)," -t ", cores," -a ", cores," -S diamond -n ", basename(proteome_folder)))
 orthologr::orthofinder2(proteome_folder = "../DevSeq_data/DevSeq_Proteins_longest_isoforms", comp_cores = 4)
 
 
@@ -845,6 +846,7 @@ orthologr::retrieve_longest_isoforms_all(
                            annotation_format = "gtf")
 
 # run orthofinder2 on protein sequences with longest splice variants 
+# system(paste0("orthofinder -f ", ws_wrap(proteome_folder)," -t ", cores," -a ", cores," -S diamond -n ", basename(proteome_folder)))
 orthologr::orthofinder2(proteome_folder = "../DevSeq_data/Brawand_Proteins_longest_isoforms", comp_cores = 4)
 
 # Brawand Core Orthologs
