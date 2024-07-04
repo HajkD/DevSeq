@@ -2,7 +2,7 @@
 
 ## Reproducible Scripts for the Publication:
 
-> Schuster C, Gabel A, Drost H-G, Leyser O, Grosse I, Meyerowitz E. Comparative developmental transcriptome atlases across nine plant body plan organs.
+> Schuster C, Gabel A, Drost H-G, Leyser O, Grosse I, Meyerowitz E. Rapid evolution of gene expression patterns in flowering plants.
 
 
 * [1. Resource Retrieval](#Resource Retrieval)
@@ -308,7 +308,7 @@ cowplot::save_plot(
 
 ## EvoSeq
 
-```
+```r
 # compute dN/dS table of A. thaliana vs. all other species
 orthologr::map_generator_dnds(
                query_file      = "../DevSeq_data/EvoSeq_CDS/Query_files/Athaliana.fa",
