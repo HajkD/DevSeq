@@ -5,7 +5,7 @@
 > Schuster C, Gabel A, Drost H-G, Leyser O, Grosse I, Meyerowitz E. [Rapid evolution of gene expression patterns in flowering plants](https://www.biorxiv.org/content/10.1101/2024.07.08.602577v1). __bioRxiv__ (2024).
 
 
-* [1. Resource Retrieval](#Resource Retrieval)
+* [1. Resource Retrieval](#Resource-Retrieval)
     - [1.1 Reference Genome and CDS Retrieval](#reference-genome-and-cds-retrieval)
     - [1.2 Software Retrieval](#reference-genome-and-cds-retrieval)
 * [2. Orthology Inference and dNdS Estimation](#orthology-inference-and-dnds-estimation)
