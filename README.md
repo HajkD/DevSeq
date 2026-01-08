@@ -2,7 +2,7 @@
 
 ## Reproducible Scripts for the Publication:
 
-> Schuster C, Gabel A, Drost H-G, Leyser O, Grosse I, Meyerowitz E. [Rapid evolution of gene expression patterns in flowering plants](https://www.biorxiv.org/content/10.1101/2024.07.08.602577v1). __bioRxiv__ (2024).
+> Schuster C, Gabel A, Drost H-G, Grosse I, Leyser O, Meyerowitz E. [Evolutionary transcriptomics unveils rapid changes of gene expression patterns in flowering plants](https://www.cell.com/cell/fulltext/S0092-8674%2825%2901428-X). __Cell__ (2026) in press.
 
 
 * [1. Resource Retrieval](#Resource-Retrieval)
