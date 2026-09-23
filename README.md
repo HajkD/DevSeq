@@ -2,7 +2,7 @@
 
 ## Reproducible Scripts for the Publication:
 
-> Schuster C, Gabel A, Drost H-G, Grosse I, Leyser O, Meyerowitz E. [Evolutionary transcriptomics unveils rapid changes of gene expression patterns in flowering plants](https://www.cell.com/cell/fulltext/S0092-8674%2825%2901428-X). __Cell__ (2026) in press.
+> Schuster C, Gabel A, Drost H-G, Grosse I, Leyser O, Meyerowitz E. [Evolutionary transcriptomics unveils rapid changes of gene expression patterns in flowering plants](https://www.cell.com/cell/fulltext/S0092-8674%2825%2901428-X). __Cell__ 189 (2), 375-385 (2026).
 
 
 * [1. Resource Retrieval](#Resource-Retrieval)
@@ -13,7 +13,12 @@
     - [2.2 Orthogroup Inference with Orthofinder2](#orthogroup-inference-with-orthofinder2)
 
 ## Resource Retrieval
-
+Download all original files used for the analysis here:
+- [Genome files]()
+- [GTF files]()
+- [CDS files]()
+- [orthologR results]()
+  
 ### Reference Genomes, CDS, lncRNAs, etc
 
 ### Software Retrieval
